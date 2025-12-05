@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-foreground;
+    @apply min-h-screen;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Gradient Glow Effects */
+  .glow-card {
+    @apply relative bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-sm;
+    @apply border border-purple-500/30 rounded-xl;
+    @apply shadow-glow transition-all duration-300;
+  }
+  
+  .glow-card:hover {
+    @apply shadow-glow-lg border-purple-400/50 scale-[1.02];
+  }
+
+  .glow-button {
+    @apply relative bg-gradient-to-r from-purple-600 to-pink-600;
+    @apply text-white font-semibold rounded-lg px-6 py-3;
+    @apply shadow-glow-purple transition-all duration-300;
+    @apply hover:shadow-glow-lg hover:scale-105 active:scale-95;
+  }
+
+  .glow-badge {
+    @apply bg-gradient-to-r from-purple-500/20 to-pink-500/20;
+    @apply border border-purple-400/30 text-purple-200;
+    @apply px-3 py-1 rounded-full text-sm font-medium;
+    @apply shadow-glow transition-all duration-300;
+  }
+
+  .gradient-section {
+    @apply relative bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-900/80;
+    @apply backdrop-blur-md rounded-2xl p-6;
+    @apply border border-purple-500/20;
+    @apply shadow-[0_8px_32px_0_rgba(139,92,246,0.2)];
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400;
+    @apply bg-clip-text text-transparent;
+    @apply animate-pulse;
+  }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-800/50 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-purple-500 to-pink-500 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply from-purple-400 to-pink-400;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Prose Styles for Modal Content */
+@layer components {
+  .prose {
+    @apply text-gray-200;
+  }
+  
+  .prose a {
+    @apply text-purple-400 hover:text-purple-300 underline transition-colors;
+  }
+  
+  .prose strong {
+    @apply text-white font-semibold;
+  }
+  
+  .prose em {
+    @apply text-purple-300;
+  }
+  
+  .prose ul, .prose ol {
+    @apply text-gray-300;
+  }
+  
+  .prose li {
+    @apply my-2;
+  }
+  
+  .prose p {
+    @apply mb-4;
+  }
+  
+  .prose h1, .prose h2, .prose h3 {
+    @apply text-white font-bold mt-6 mb-4;
+  }
+}
+

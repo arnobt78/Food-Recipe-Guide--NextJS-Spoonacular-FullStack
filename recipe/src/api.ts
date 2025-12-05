@@ -1,4 +1,4 @@
-import { Recipe } from "./types";
+import { Recipe, SearchRecipesResponse, FavouriteRecipesResponse, RecipeSummary } from "./types";
 
 // Use relative paths for API calls - works with Vercel serverless functions
 // In local dev: Vercel CLI serves both frontend and API on same origin (any port)
@@ -28,7 +28,18 @@ function getApiUrl(path: string): string {
   return path;
 }
 
-export const searchRecipes = async (searchTerm: string, page: number) => {
+/**
+ * Search recipes by term and page
+ * 
+ * @param searchTerm - Search query string
+ * @param page - Page number for pagination
+ * @returns Promise with search results
+ * @throws Error if request fails
+ */
+export const searchRecipes = async (
+  searchTerm: string,
+  page: number
+): Promise<SearchRecipesResponse> => {
   const apiPath = getApiUrl("/api/recipes/search");
   
   // Build URL with query params
@@ -45,10 +56,17 @@ export const searchRecipes = async (searchTerm: string, page: number) => {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  return response.json();
+  return response.json() as Promise<SearchRecipesResponse>;
 };
 
-export const getRecipeSummary = async (recipeId: string) => {
+/**
+ * Get recipe summary by ID
+ * 
+ * @param recipeId - Recipe ID string
+ * @returns Promise with recipe summary
+ * @throws Error if request fails
+ */
+export const getRecipeSummary = async (recipeId: string): Promise<RecipeSummary> => {
   const apiPath = getApiUrl(`/api/recipes/${recipeId}/summary`);
   
   // fetch() handles relative paths automatically using current origin
@@ -59,10 +77,16 @@ export const getRecipeSummary = async (recipeId: string) => {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  return response.json();
+  return response.json() as Promise<RecipeSummary>;
 };
 
-export const getFavouriteRecipes = async () => {
+/**
+ * Get all favourite recipes
+ * 
+ * @returns Promise with favourite recipes array
+ * @throws Error if request fails
+ */
+export const getFavouriteRecipes = async (): Promise<FavouriteRecipesResponse> => {
   const apiPath = getApiUrl("/api/recipes/favourite");
   
   // fetch() handles relative paths automatically using current origin
@@ -73,10 +97,17 @@ export const getFavouriteRecipes = async () => {
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
-  return response.json();
+  return response.json() as Promise<FavouriteRecipesResponse>;
 };
 
-export const addFavouriteRecipe = async (recipe: Recipe) => {
+/**
+ * Add recipe to favourites
+ * 
+ * @param recipe - Recipe to add to favourites
+ * @returns Promise that resolves when recipe is added
+ * @throws Error if request fails
+ */
+export const addFavouriteRecipe = async (recipe: Recipe): Promise<void> => {
   const apiPath = getApiUrl("/api/recipes/favourite");
   const body = {
     recipeId: recipe.id,
@@ -97,7 +128,14 @@ export const addFavouriteRecipe = async (recipe: Recipe) => {
   }
 };
 
-export const removeFavouriteRecipe = async (recipe: Recipe) => {
+/**
+ * Remove recipe from favourites
+ * 
+ * @param recipe - Recipe to remove from favourites
+ * @returns Promise that resolves when recipe is removed
+ * @throws Error if request fails
+ */
+export const removeFavouriteRecipe = async (recipe: Recipe): Promise<void> => {
   const apiPath = getApiUrl("/api/recipes/favourite");
   const body = {
     recipeId: recipe.id,
