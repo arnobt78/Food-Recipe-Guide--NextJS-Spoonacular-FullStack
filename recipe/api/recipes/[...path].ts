@@ -37,30 +37,47 @@ export default async function handler(
 
   // Extract path segments from catch-all route parameter
   // In Vercel, catch-all routes [...path] put segments in request.query.path as array or string
-  // IMPORTANT: Always extract from URL pathname first for reliability (works in all scenarios)
+  // CRITICAL: Vercel may pass path segments differently depending on the route structure
   let pathArray: string[] = [];
   
-  // Extract path segments - try multiple methods for reliability
+  // ALWAYS log for debugging (we'll remove this after fixing)
+  console.log("🔍 [Recipes API] Request received:", {
+    url: request.url,
+    method: request.method,
+    host: request.headers.host,
+    "x-forwarded-host": request.headers["x-forwarded-host"],
+    "x-forwarded-proto": request.headers["x-forwarded-proto"],
+    query: request.query,
+    pathParam: request.query.path,
+    pathParamType: typeof request.query.path,
+    pathParamIsArray: Array.isArray(request.query.path),
+  });
+  
   // Method 1: Use request.query.path (Vercel's catch-all route parameter)
+  // This is the PRIMARY method - Vercel should populate this for [...path] routes
   const pathParam = request.query.path;
   if (pathParam) {
     if (Array.isArray(pathParam)) {
       pathArray = pathParam;
+      console.log("✅ [Recipes API] Path from query.path (array):", pathArray);
     } else if (typeof pathParam === "string") {
       pathArray = pathParam.split("/").filter(Boolean);
+      console.log("✅ [Recipes API] Path from query.path (string):", pathArray);
     }
   }
   
-  // Method 2: Extract from URL pathname if query.path didn't work
+  // Method 2: Extract from URL pathname if query.path didn't work or is empty
+  // This handles cases where Vercel doesn't populate query.path correctly
   if (pathArray.length === 0 && request.url) {
     try {
       // Vercel provides request.url which may be relative or absolute
       let url: URL;
       
+      // Handle absolute URLs
       if (request.url.startsWith("http://") || request.url.startsWith("https://")) {
         url = new URL(request.url);
       } else {
-        // For relative URLs, construct full URL
+        // For relative URLs, construct full URL using Vercel headers
         const protocol = request.headers["x-forwarded-proto"] || "https";
         const host = request.headers.host || request.headers["x-forwarded-host"] || "localhost";
         url = new URL(request.url, `${protocol}://${host}`);
@@ -71,44 +88,52 @@ export default async function handler(
       const recipesIndex = segments.indexOf("recipes");
       if (recipesIndex !== -1 && recipesIndex < segments.length - 1) {
         pathArray = segments.slice(recipesIndex + 1);
+        console.log("✅ [Recipes API] Path from URL pathname:", pathArray);
+      } else {
+        console.log("⚠️ [Recipes API] Could not find 'recipes' in pathname segments:", segments);
       }
     } catch (error) {
       console.error("❌ [Recipes API] URL parsing error:", error);
     }
   }
   
-  // Method 3: Try extracting from request.url directly (last resort)
+  // Method 3: Try extracting from request.url directly using regex (last resort)
   if (pathArray.length === 0 && request.url) {
-    // Simple regex extraction as fallback
+    // Match /api/recipes/... and extract everything after recipes/
     const match = request.url.match(/\/api\/recipes\/(.+?)(?:\?|$)/);
     if (match && match[1]) {
       pathArray = match[1].split("/").filter(Boolean);
+      console.log("✅ [Recipes API] Path from regex extraction:", pathArray);
+    } else {
+      console.log("⚠️ [Recipes API] Regex extraction failed for URL:", request.url);
     }
   }
 
-  // Debug logging for troubleshooting (helps identify routing issues in production)
-  // Only log when path extraction might have issues or for numeric IDs
-  if (pathArray.length === 0 || (pathArray[0] && /^\d+$/.test(pathArray[0]))) {
-    console.log("🔍 [Recipes API] Path extraction:", {
-      url: request.url,
-      host: request.headers.host,
-      pathParam: request.query.path,
-      pathArray,
-      firstSegment: pathArray[0],
-      secondSegment: pathArray[1],
-      method: request.method,
-    });
-  }
+  // Final debug logging
+  console.log("🔍 [Recipes API] Final path extraction:", {
+    pathArray,
+    firstSegment: pathArray[0],
+    secondSegment: pathArray[1],
+    isNumericFirst: pathArray[0] ? /^\d+$/.test(pathArray[0]) : false,
+  });
 
   const firstSegment = pathArray[0] || "";
   const secondSegment = pathArray[1] || "";
   
   // Check if first segment is numeric (recipeId) - handle recipe detail endpoints
+  // This handles routes like /api/recipes/716426/information
   if (firstSegment && /^\d+$/.test(firstSegment)) {
     const recipeId = firstSegment;
     const endpoint = secondSegment;
 
+    console.log("🎯 [Recipes API] Handling recipe detail endpoint:", {
+      recipeId,
+      endpoint,
+      pathArray,
+    });
+
     if (!endpoint) {
+      console.error("❌ [Recipes API] Recipe endpoint missing for recipeId:", recipeId);
       return response.status(400).json({ error: "Recipe endpoint is required (information, similar, or summary)" });
     }
 
