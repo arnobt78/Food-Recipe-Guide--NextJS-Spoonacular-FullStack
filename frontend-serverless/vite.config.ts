@@ -12,6 +12,8 @@ export default defineConfig({
   },
   // Proxy API requests to Vercel dev server (when running locally)
   // Frontend runs on port 3000, backend API on port 3001
+  // When Vercel dev runs from parent directory with Root Directory setting,
+  // it expects requests at /api/* which are forwarded correctly
   server: {
     port: 3000,
     proxy: {
@@ -19,7 +21,14 @@ export default defineConfig({
         target: process.env.VERCEL_DEV_URL || "http://localhost:3001",
         changeOrigin: true,
         secure: false,
-        // Only proxy in development
+        // Preserve the original path and query string
+        // Vercel dev expects /api/* paths, so we keep them as-is
+        rewrite: (path) => {
+          // Remove /api prefix if it exists (Vite adds it, but we want to keep it for Vercel)
+          // Actually, we want to keep /api in the path for Vercel
+          return path;
+        },
+        // Configure proxy to handle errors gracefully
         configure: (proxy, _options) => {
           proxy.on("error", (_err, _req, _res) => {
             console.log(
@@ -29,6 +38,12 @@ export default defineConfig({
               "💡 Run: npm run dev (starts both frontend and backend)"
             );
           });
+          // Log proxy requests in development for debugging
+          if (process.env.NODE_ENV === "development") {
+            proxy.on("proxyReq", (proxyReq, req) => {
+              console.log(`[Vite Proxy] ${req.method} ${req.url} → ${proxyReq.path}`);
+            });
+          }
         },
       },
     },

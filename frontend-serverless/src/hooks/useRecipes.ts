@@ -80,9 +80,12 @@ export function useSearchRecipes(
 
       // If no cache, fetch from API
       // Enable fillIngredients to get usedIngredients/missedIngredients for better UX
+      // Enable addRecipeInformation to get ALL recipe properties for comprehensive display
+      // Enable addRecipeNutrition to get nutrition data in search results
       const apiData = await api.searchRecipes(searchTerm, page, {
-        fillIngredients: true, // Get ingredient match information
-        addRecipeInformation: false, // Keep false to reduce API costs, can enable if needed
+        fillIngredients: true, // Get ingredient match information (usedIngredients, missedIngredients, unusedIngredients)
+        addRecipeInformation: true, // Get ALL recipe properties (readyInMinutes, servings, pricePerServing, spoonacularScore, healthScore, cuisines, diets, dishTypes, occasions, all dietary flags, etc.)
+        addRecipeNutrition: true, // Get nutrition data in search results (calories, protein, etc.)
       });
 
       // Save to both localStorage and sessionStorage for future use

@@ -57,6 +57,7 @@ import { Recipe, SearchRecipesResponse } from "./types";
 import { toast } from "sonner";
 import { Card } from "./components/ui/card";
 import { ChefHat } from "lucide-react";
+import SearchResultsMetadata from "./components/SearchResultsMetadata";
 
 /**
  * Main App Content (wrapped in RecipeProvider and AuthProvider)
@@ -303,6 +304,16 @@ const AppContent = () => {
 
                 {/* Error Message */}
                 <ErrorMessage message={apiError} />
+
+                {/* Search Results Metadata */}
+                {!isSearching && recipes.length > 0 && searchResponse && (
+                  <SearchResultsMetadata
+                    searchResponse={searchResponse}
+                    currentResultsCount={recipes.length}
+                    searchTerm={searchTerm}
+                    className="mb-4"
+                  />
+                )}
 
                 {/* Recipe Grid */}
                 {isSearching ? (

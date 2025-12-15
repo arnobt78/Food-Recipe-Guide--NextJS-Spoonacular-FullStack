@@ -37,21 +37,8 @@ export default async function handler(
 
   // Extract path segments from catch-all route parameter
   // In Vercel, catch-all routes [...path] put segments in request.query.path as array or string
-  // CRITICAL: Vercel may pass path segments differently depending on the route structure
+  // When running from parent directory, path extraction may need special handling
   let pathArray: string[] = [];
-  
-  // ALWAYS log for debugging (we'll remove this after fixing)
-  console.log("🔍 [Recipes API] Request received:", {
-    url: request.url,
-    method: request.method,
-    host: request.headers.host,
-    "x-forwarded-host": request.headers["x-forwarded-host"],
-    "x-forwarded-proto": request.headers["x-forwarded-proto"],
-    query: request.query,
-    pathParam: request.query.path,
-    pathParamType: typeof request.query.path,
-    pathParamIsArray: Array.isArray(request.query.path),
-  });
   
   // Method 1: Use request.query.path (Vercel's catch-all route parameter)
   // This is the PRIMARY method - Vercel should populate this for [...path] routes
@@ -59,15 +46,17 @@ export default async function handler(
   if (pathParam) {
     if (Array.isArray(pathParam)) {
       pathArray = pathParam;
-      console.log("✅ [Recipes API] Path from query.path (array):", pathArray);
     } else if (typeof pathParam === "string") {
-      pathArray = pathParam.split("/").filter(Boolean);
-      console.log("✅ [Recipes API] Path from query.path (string):", pathArray);
+      // Handle both "/" separated strings and comma-separated strings
+      pathArray = pathParam.includes("/") 
+        ? pathParam.split("/").filter(Boolean)
+        : pathParam.split(",").filter(Boolean);
     }
   }
   
   // Method 2: Extract from URL pathname if query.path didn't work or is empty
   // This handles cases where Vercel doesn't populate query.path correctly
+  // CRITICAL: When running from parent directory, request.url might be different
   if (pathArray.length === 0 && request.url) {
     try {
       // Vercel provides request.url which may be relative or absolute
@@ -78,19 +67,29 @@ export default async function handler(
         url = new URL(request.url);
       } else {
         // For relative URLs, construct full URL using Vercel headers
-        const protocol = request.headers["x-forwarded-proto"] || "https";
-        const host = request.headers.host || request.headers["x-forwarded-host"] || "localhost";
+        const protocol = request.headers["x-forwarded-proto"] || "http";
+        const host = request.headers.host || request.headers["x-forwarded-host"] || "localhost:3001";
         url = new URL(request.url, `${protocol}://${host}`);
       }
       
       // Extract path segments after /api/recipes
+      // Handle both /api/recipes/... and /frontend-serverless/api/recipes/... patterns
       const segments = url.pathname.split("/").filter(Boolean);
-      const recipesIndex = segments.indexOf("recipes");
+      let recipesIndex = segments.indexOf("recipes");
+      
+      // If recipes not found, try looking for it after "api"
+      if (recipesIndex === -1) {
+        const apiIndex = segments.indexOf("api");
+        if (apiIndex !== -1 && apiIndex < segments.length - 1) {
+          // Check if next segment is "recipes"
+          if (segments[apiIndex + 1] === "recipes") {
+            recipesIndex = apiIndex + 1;
+          }
+        }
+      }
+      
       if (recipesIndex !== -1 && recipesIndex < segments.length - 1) {
         pathArray = segments.slice(recipesIndex + 1);
-        console.log("✅ [Recipes API] Path from URL pathname:", pathArray);
-      } else {
-        console.log("⚠️ [Recipes API] Could not find 'recipes' in pathname segments:", segments);
       }
     } catch (error) {
       console.error("❌ [Recipes API] URL parsing error:", error);
@@ -98,24 +97,15 @@ export default async function handler(
   }
   
   // Method 3: Try extracting from request.url directly using regex (last resort)
+  // This handles edge cases where URL format is non-standard
   if (pathArray.length === 0 && request.url) {
     // Match /api/recipes/... and extract everything after recipes/
-    const match = request.url.match(/\/api\/recipes\/(.+?)(?:\?|$)/);
+    // Also handle /frontend-serverless/api/recipes/... pattern
+    const match = request.url.match(/(?:^|\/)(?:frontend-serverless\/)?api\/recipes\/(.+?)(?:\?|$)/);
     if (match && match[1]) {
       pathArray = match[1].split("/").filter(Boolean);
-      console.log("✅ [Recipes API] Path from regex extraction:", pathArray);
-    } else {
-      console.log("⚠️ [Recipes API] Regex extraction failed for URL:", request.url);
     }
   }
-
-  // Final debug logging
-  console.log("🔍 [Recipes API] Final path extraction:", {
-    pathArray,
-    firstSegment: pathArray[0],
-    secondSegment: pathArray[1],
-    isNumericFirst: pathArray[0] ? /^\d+$/.test(pathArray[0]) : false,
-  });
 
   const firstSegment = pathArray[0] || "";
   const secondSegment = pathArray[1] || "";

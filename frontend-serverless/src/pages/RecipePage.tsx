@@ -944,15 +944,29 @@ const RecipePage = memo(() => {
                                     </div>
                                   )}
                                   
-                                  <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0">
                                     {/* Ingredient Number Badge */}
                                     <div className="flex items-center gap-2 mb-1">
                                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center">
                                         <span className="text-xs font-semibold text-orange-300">{idx + 1}</span>
                                       </div>
-                                      <p className="text-white font-medium break-words">
-                                        {ingredient.original}
-                                      </p>
+                                      <div className="flex-1">
+                                        <p className="text-white font-medium break-words">
+                                          {ingredient.original}
+                                        </p>
+                                        {/* Display originalName if different from name */}
+                                        {ingredient.originalName && ingredient.originalName !== ingredient.name && (
+                                          <p className="text-xs text-gray-500 mt-0.5">
+                                            ({ingredient.originalName})
+                                          </p>
+                                        )}
+                                        {/* Display name if different from original */}
+                                        {ingredient.name && ingredient.name !== ingredient.original && (
+                                          <p className="text-xs text-gray-400 mt-0.5">
+                                            Name: {ingredient.name}
+                                          </p>
+                                        )}
+                                      </div>
                                     </div>
                                     
                                     {/* Additional Ingredient Info */}
@@ -967,14 +981,24 @@ const RecipePage = memo(() => {
                                       {(ingredient.measures?.metric || ingredient.measures?.us) && (
                                         <div className="flex flex-wrap gap-2 text-xs">
                                           {ingredient.measures?.us && (
-                                            <Badge className="bg-orange-500/10 text-orange-300 border-orange-500/20">
-                                              US: {ingredient.measures.us.amount} {ingredient.measures.us.unitShort}
-                                            </Badge>
+                                            <div className="flex flex-col gap-0.5">
+                                              <Badge className="bg-orange-500/10 text-orange-300 border-orange-500/20">
+                                                US: {ingredient.measures.us.amount} {ingredient.measures.us.unitShort}
+                                              </Badge>
+                                              {ingredient.measures.us.unitLong && ingredient.measures.us.unitLong !== ingredient.measures.us.unitShort && (
+                                                <span className="text-gray-500 text-xs">{ingredient.measures.us.unitLong}</span>
+                                              )}
+                                            </div>
                                           )}
                                           {ingredient.measures?.metric && (
-                                            <Badge className="bg-orange-500/10 text-orange-300 border-orange-500/20">
-                                              Metric: {Math.round(ingredient.measures.metric.amount * 100) / 100} {ingredient.measures.metric.unitShort}
-                                            </Badge>
+                                            <div className="flex flex-col gap-0.5">
+                                              <Badge className="bg-orange-500/10 text-orange-300 border-orange-500/20">
+                                                Metric: {Math.round(ingredient.measures.metric.amount * 100) / 100} {ingredient.measures.metric.unitShort}
+                                              </Badge>
+                                              {ingredient.measures.metric.unitLong && ingredient.measures.metric.unitLong !== ingredient.measures.metric.unitShort && (
+                                                <span className="text-gray-500 text-xs">{ingredient.measures.metric.unitLong}</span>
+                                              )}
+                                            </div>
                                           )}
                                         </div>
                                       )}
@@ -1053,8 +1077,11 @@ const RecipePage = memo(() => {
                                                         decoding="async"
                                                       />
                                                     )}
-                                                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs">
+                                                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs" title={ing.localizedName && ing.localizedName !== ing.name ? `Localized: ${ing.localizedName}` : undefined}>
                                                       {ing.name}
+                                                      {ing.localizedName && ing.localizedName !== ing.name && (
+                                                        <span className="ml-1 text-blue-200/70">({ing.localizedName})</span>
+                                                      )}
                                                     </Badge>
                                                   </div>
                                                 ))}
@@ -1078,8 +1105,11 @@ const RecipePage = memo(() => {
                                                         decoding="async"
                                                       />
                                                     )}
-                                                    <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs">
+                                                    <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs" title={eq.localizedName && eq.localizedName !== eq.name ? `Localized: ${eq.localizedName}` : undefined}>
                                                       {eq.name}
+                                                      {eq.localizedName && eq.localizedName !== eq.name && (
+                                                        <span className="ml-1 text-indigo-200/70">({eq.localizedName})</span>
+                                                      )}
                                                     </Badge>
                                                   </div>
                                                 ))}

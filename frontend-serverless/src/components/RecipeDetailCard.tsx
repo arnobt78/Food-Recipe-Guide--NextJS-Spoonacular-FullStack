@@ -908,10 +908,53 @@ const RecipeDetailCard = memo(({ recipe, onClose, isFavourite, onToggleFavourite
                                       <p className="text-white font-medium break-words">
                                         {ingredient.original}
                                       </p>
+                                      {/* Display originalName if different from name */}
+                                      {ingredient.originalName && ingredient.originalName !== ingredient.name && (
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                          ({ingredient.originalName})
+                                        </p>
+                                      )}
+                                      {/* Display name if different from original */}
+                                      {ingredient.name && ingredient.name !== ingredient.original && (
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                          Name: {ingredient.name}
+                                        </p>
+                                      )}
                                       {ingredient.aisle && (
                                         <p className="text-xs text-gray-400 mt-1">
                                           Aisle: {ingredient.aisle}
                                         </p>
+                                      )}
+                                      {/* Display measures if available */}
+                                      {(ingredient.measures?.metric || ingredient.measures?.us) && (
+                                        <div className="flex flex-wrap gap-2 mt-1 text-xs">
+                                          {ingredient.measures?.us && (
+                                            <Badge className="bg-orange-500/10 text-orange-300 border-orange-500/20">
+                                              US: {ingredient.measures.us.amount} {ingredient.measures.us.unitShort}
+                                            </Badge>
+                                          )}
+                                          {ingredient.measures?.metric && (
+                                            <Badge className="bg-orange-500/10 text-orange-300 border-orange-500/20">
+                                              Metric: {Math.round(ingredient.measures.metric.amount * 100) / 100} {ingredient.measures.metric.unitShort}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      )}
+                                      {/* Display meta if available */}
+                                      {ingredient.meta && ingredient.meta.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {ingredient.meta.map((meta, metaIdx) => (
+                                            <Badge key={metaIdx} variant="outline" className="bg-slate-700/50 border-slate-600 text-gray-300 text-xs">
+                                              {meta}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {/* Display consistency if available */}
+                                      {ingredient.consistency && (
+                                        <Badge variant="outline" className="bg-slate-700/50 border-slate-600 text-gray-300 text-xs mt-1">
+                                          {ingredient.consistency}
+                                        </Badge>
                                       )}
                                     </div>
                                   </div>
@@ -951,28 +994,65 @@ const RecipeDetailCard = memo(({ recipe, onClose, isFavourite, onToggleFavourite
                                         </div>
                                         <div className="flex-1">
                                           <p className="text-white leading-relaxed">{step.step}</p>
+                                          {/* Ingredients with images */}
                                           {step.ingredients && step.ingredients.length > 0 && (
-                                            <div className="mt-2 flex flex-wrap gap-2">
-                                              {step.ingredients.map((ing, ingIdx) => (
-                                                <Badge
-                                                  key={ingIdx}
-                                                  className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs"
-                                                >
-                                                  {ing.name}
-                                                </Badge>
-                                              ))}
+                                            <div className="mt-3">
+                                              <p className="text-xs text-gray-400 mb-2">Ingredients used:</p>
+                                              <div className="flex flex-wrap gap-2">
+                                                {step.ingredients.map((ing, ingIdx) => (
+                                                  <div key={ingIdx} className="flex items-center gap-1.5">
+                                                    {ing.image && (
+                                                      <img
+                                                        src={`https://img.spoonacular.com/ingredients_100x100/${ing.image}`}
+                                                        alt={ing.name}
+                                                        className="w-6 h-6 rounded object-cover"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                      />
+                                                    )}
+                                                    <Badge
+                                                      className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs"
+                                                      title={ing.localizedName && ing.localizedName !== ing.name ? `Localized: ${ing.localizedName}` : undefined}
+                                                    >
+                                                      {ing.name}
+                                                      {ing.localizedName && ing.localizedName !== ing.name && (
+                                                        <span className="ml-1 text-blue-200/70">({ing.localizedName})</span>
+                                                      )}
+                                                    </Badge>
+                                                  </div>
+                                                ))}
+                                              </div>
                                             </div>
                                           )}
+                                          
+                                          {/* Equipment with images */}
                                           {step.equipment && step.equipment.length > 0 && (
-                                            <div className="mt-2 flex flex-wrap gap-2">
-                                              {step.equipment.map((eq, eqIdx) => (
-                                                <Badge
-                                                  key={eqIdx}
-                                                  className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs"
-                                                >
-                                                  {eq.name}
-                                                </Badge>
-                                              ))}
+                                            <div className="mt-3">
+                                              <p className="text-xs text-gray-400 mb-2">Equipment needed:</p>
+                                              <div className="flex flex-wrap gap-2">
+                                                {step.equipment.map((eq, eqIdx) => (
+                                                  <div key={eqIdx} className="flex items-center gap-1.5">
+                                                    {eq.image && (
+                                                      <img
+                                                        src={`https://img.spoonacular.com/equipment_100x100/${eq.image}`}
+                                                        alt={eq.name}
+                                                        className="w-6 h-6 rounded object-cover"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                      />
+                                                    )}
+                                                    <Badge
+                                                      className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs"
+                                                      title={eq.localizedName && eq.localizedName !== eq.name ? `Localized: ${eq.localizedName}` : undefined}
+                                                    >
+                                                      {eq.name}
+                                                      {eq.localizedName && eq.localizedName !== eq.name && (
+                                                        <span className="ml-1 text-indigo-200/70">({eq.localizedName})</span>
+                                                      )}
+                                                    </Badge>
+                                                  </div>
+                                                ))}
+                                              </div>
                                             </div>
                                           )}
                                         </div>

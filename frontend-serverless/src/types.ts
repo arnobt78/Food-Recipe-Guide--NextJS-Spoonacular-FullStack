@@ -8,16 +8,18 @@
  */
 
 /**
- * Recipe interface - matches Spoonacular API response
+ * Recipe interface - matches Spoonacular API complexSearch endpoint response
  * Used for displaying recipe cards and lists
- * Includes properties from complexSearch endpoint
+ * Includes ALL properties from complexSearch endpoint per API documentation
+ * 
+ * @see https://spoonacular.com/food-api/docs#Search-Recipes
  */
 export interface Recipe {
   id: number;
   title: string;
   image: string;
   imageType: string;
-  summary?: string; // Optional summary for graceful fallback when API limit is reached
+  summary?: string; // Optional summary (when addRecipeInformation=true)
   // Properties from complexSearch when fillIngredients=true
   usedIngredientCount?: number;
   missedIngredientCount?: number;
@@ -62,6 +64,33 @@ export interface Recipe {
     image: string;
   }>;
   likes?: number;
+  // Additional properties when addRecipeInformation=true
+  readyInMinutes?: number;
+  servings?: number;
+  sourceUrl?: string;
+  sourceName?: string;
+  spoonacularSourceUrl?: string;
+  healthScore?: number;
+  spoonacularScore?: number;
+  pricePerServing?: number;
+  cheap?: boolean;
+  creditsText?: string;
+  cuisines?: string[];
+  dairyFree?: boolean;
+  diets?: string[];
+  gaps?: string;
+  glutenFree?: boolean;
+  ketogenic?: boolean;
+  lowFodmap?: boolean;
+  occasions?: string[];
+  sustainable?: boolean;
+  vegan?: boolean;
+  vegetarian?: boolean;
+  veryHealthy?: boolean;
+  veryPopular?: boolean;
+  whole30?: boolean;
+  weightWatcherSmartPoints?: number;
+  dishTypes?: string[];
 }
 
 /**
