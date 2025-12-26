@@ -115,7 +115,7 @@ export function persistQueryCache(queryClient: QueryClient): void {
     regularQueries.sort((a, b) => b.dataUpdatedAt - a.dataUpdatedAt);
 
     // Start with priority queries (always include these)
-    let selectedQueries: typeof priorityQueries = [...priorityQueries];
+    const selectedQueries: typeof priorityQueries = [...priorityQueries];
     let totalSize = estimateSize(selectedQueries);
 
     // Add regular queries until we hit the size limit

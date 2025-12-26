@@ -50,7 +50,9 @@ cloudinary.config({
 });
 
 // Type definitions
-interface ShoppingListItem {
+// ShoppingListItem interface - kept for future reference
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface _ShoppingListItem {
   name: string;
   quantity: string;
   unit?: string;
