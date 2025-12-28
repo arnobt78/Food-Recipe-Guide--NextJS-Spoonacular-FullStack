@@ -347,24 +347,6 @@ const RecipeDetailCard = memo(
                     priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                  {/* Decorative SVG Icons Overlay */}
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <Image
-                      src="/chef.svg"
-                      alt="Chef"
-                      width={32}
-                      height={32}
-                      className="opacity-60 drop-shadow-lg"
-                    />
-                    <Image
-                      src="/cooking.svg"
-                      alt="Cooking"
-                      width={32}
-                      height={32}
-                      className="opacity-60 drop-shadow-lg"
-                    />
-                  </div>
                 </div>
               </div>
 
