@@ -45,6 +45,8 @@ model User {
   mealPlans     MealPlan[]
   shoppingLists ShoppingList[]
   recipeImages  RecipeImage[]
+  filterPresets FilterPreset[]
+  recipeVideos  RecipeVideo[]
 
   @@index([email])
 }
@@ -190,4 +192,48 @@ model RecipeImage {
   @@index([userId])
   @@index([recipeId])
   @@index([imageType])
+}
+
+/**
+ * Filter Preset model - saved recipe search filter configurations
+ */
+model FilterPreset {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  filters     Json // AdvancedFilterOptions as JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([name])
+}
+
+/**
+ * Recipe Video model - user-added recipe videos (YouTube, Vimeo, custom)
+ */
+model RecipeVideo {
+  id          String   @id @default(uuid())
+  recipeId    Int
+  userId      String
+  videoUrl    String // YouTube/Vimeo URL or custom video URL
+  videoType   String // "youtube", "vimeo", "custom"
+  title       String?
+  description String?
+  thumbnailUrl String?
+  duration    Int? // Duration in seconds
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([recipeId])
+  @@index([videoType])
 }

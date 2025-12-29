@@ -13,6 +13,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   Suspense,
   lazy,
 } from "react";
@@ -27,9 +28,12 @@ import EmptyState from "../common/EmptyState";
 import ViewMoreButton from "../common/ViewMoreButton";
 import HeroHeader from "./HeroHeader";
 import Navbar from "./Navbar";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
 import SkeletonRecipeGrid from "../skeletons/SkeletonRecipeGrid";
 import SkeletonMealPlanner from "../skeletons/SkeletonMealPlanner";
 import SkeletonShoppingList from "../skeletons/SkeletonShoppingList";
+import SkeletonWeatherSuggestions from "../skeletons/SkeletonWeatherSuggestions";
 import {
   useSearchRecipes,
   useAISearchRecipes,
@@ -39,7 +43,6 @@ import {
 } from "../../hooks/useRecipes";
 import { Recipe, SearchRecipesResponse } from "../../types";
 import { toast } from "sonner";
-import { Card } from "../ui/card";
 import { ChefHat } from "lucide-react";
 import SearchResultsMetadata from "../search/SearchResultsMetadata";
 
@@ -54,11 +57,23 @@ const MealPlanner = lazy(() => import("../meal-planning/MealPlanner"));
 const ShoppingListGenerator = lazy(
   () => import("../shopping/ShoppingListGenerator")
 );
+const WeatherBasedSuggestions = lazy(
+  () => import("../weather/WeatherBasedSuggestions")
+);
+const AdvancedFilters = lazy(() => import("../filters/AdvancedFilters"));
 
 /**
  * Main App Content (wrapped in RecipeProvider and AuthProvider)
  */
 const AppContent = () => {
+  // Track if component is mounted to prevent hydration mismatches
+  // React Query cache can cause server/client mismatch, so we render search results only after mount
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const {
     selectedCollection,
     setSelectedCollection,
@@ -68,6 +83,8 @@ const AppContent = () => {
     setSelectedTab,
     currentPage,
     setCurrentPage,
+    searchFilters,
+    setSearchFilters,
   } = useRecipeContext();
 
   const { isAuthenticated } = useAuth();
@@ -114,14 +131,28 @@ const AppContent = () => {
     !!searchTerm && selectedTab === "search" && shouldUseAISearch
   );
 
+  // Check if filters are applied (has any filter values)
+  const hasActiveFilters = useMemo(() => {
+    if (!searchFilters || Object.keys(searchFilters).length === 0) return false;
+    // Check if any filter has a value (not empty/undefined)
+    return Object.values(searchFilters).some(
+      (value) => value !== undefined && value !== null && value !== ""
+    );
+  }, [searchFilters]);
+
   const {
     data: regularSearchResponse,
     isLoading: isRegularSearching,
     error: regularSearchError,
   } = useSearchRecipes(
-    searchTerm,
+    searchTerm || (hasActiveFilters ? "recipes" : ""), // Use "recipes" as fallback when only filters are applied
     currentPage,
-    !!searchTerm && selectedTab === "search" && !shouldUseAISearch
+    selectedTab === "search" &&
+      !shouldUseAISearch &&
+      (!!searchTerm || hasActiveFilters),
+    searchFilters && Object.keys(searchFilters).length > 0
+      ? searchFilters
+      : undefined
   );
 
   // Use AI search results if AI search was used, otherwise use regular search
@@ -196,20 +227,32 @@ const AppContent = () => {
   const allRecipesRef = useRef<Recipe[]>([]);
   const lastPageRef = useRef<number>(0);
   const lastSearchTermRef = useRef<string>("");
+  const lastFiltersRef = useRef<string>("");
 
-  // Reset accumulated recipes when search term changes
+  // Reset accumulated recipes when search term or filters change
   useEffect(() => {
-    if (searchTerm !== lastSearchTermRef.current) {
+    const filtersKey = JSON.stringify(searchFilters || {});
+    if (
+      searchTerm !== lastSearchTermRef.current ||
+      filtersKey !== lastFiltersRef.current
+    ) {
       allRecipesRef.current = [];
       lastPageRef.current = 0;
       lastSearchTermRef.current = searchTerm;
+      lastFiltersRef.current = filtersKey;
     }
-  }, [searchTerm]);
+  }, [searchTerm, searchFilters]);
 
   // Accumulate recipes from all pages (only for regular search, AI search returns page 1 only)
   const recipes = useMemo(() => {
-    if (!searchResponse?.results) {
-      return allRecipesRef.current;
+    // If no search response yet, return empty array
+    if (!searchResponse) {
+      return [];
+    }
+
+    // If response has no results array, return empty array
+    if (!Array.isArray(searchResponse.results)) {
+      return [];
     }
 
     const currentPageResults = searchResponse.results;
@@ -220,18 +263,24 @@ const AppContent = () => {
     }
 
     // For regular search, accumulate results across pages
-    // If this is a new page, add to accumulated results
-    if (currentPage > lastPageRef.current) {
+    // Check if filters or search term changed (indicates new search)
+    const filtersKey = JSON.stringify(searchFilters || {});
+    const isNewSearch =
+      searchTerm !== lastSearchTermRef.current ||
+      filtersKey !== lastFiltersRef.current;
+
+    if (isNewSearch || currentPage === 1) {
+      // Reset on new search (new search term or filters changed)
+      allRecipesRef.current = currentPageResults;
+      lastPageRef.current = currentPage;
+    } else if (currentPage > lastPageRef.current) {
+      // If this is a new page, add to accumulated results
       allRecipesRef.current = [...allRecipesRef.current, ...currentPageResults];
       lastPageRef.current = currentPage;
-    } else if (currentPage === 1) {
-      // Reset on new search (page 1 means new search)
-      allRecipesRef.current = currentPageResults;
-      lastPageRef.current = 1;
     }
 
     return allRecipesRef.current;
-  }, [searchResponse, currentPage]) as Recipe[];
+  }, [searchResponse, currentPage, searchTerm, searchFilters]) as Recipe[];
 
   const apiError = useMemo(
     () =>
@@ -298,7 +347,7 @@ const AppContent = () => {
 
       {/* Main Content - Flex grow to fill remaining space, full width with inner constraint */}
       <div className="w-full flex-1">
-        <div className="w-full max-w-7xl mx-auto px-2 sm:px-0 py-4">
+        <div className="w-full max-w-7xl mx-auto px-2 xl:px-0 py-4">
           {/* Tab Navigation */}
           <TabNavigation value={selectedTab} onValueChange={setSelectedTab} />
 
@@ -312,116 +361,237 @@ const AppContent = () => {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
                 data-search-content
+                suppressHydrationWarning
               >
-                {/* Search Input - Always visible, never shows loading */}
-                <SearchInput
-                  value={searchTerm}
-                  onChange={setSearchTerm}
-                  onSubmit={handleSearchSubmit}
-                />
+                {/* Search Input and Advanced Filters */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex-1 min-w-[200px]">
+                      <SearchInput
+                        value={searchTerm}
+                        onChange={setSearchTerm}
+                        onSubmit={handleSearchSubmit}
+                      />
+                    </div>
+                    <Suspense fallback={<div className="h-10 w-32" />}>
+                      <AdvancedFilters
+                        filters={searchFilters}
+                        onFiltersChange={setSearchFilters}
+                        onApplyFilters={() => {
+                          if (searchTerm.trim()) {
+                            setCurrentPage(1);
+                          }
+                        }}
+                        isSearching={isSearching}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
 
-                {/* Default Instructions - Show when no search term */}
-                {!searchTerm.trim() && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="max-w-7xl mx-auto"
-                  >
-                    <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 p-6 sm:p-8">
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-purple-500/20 rounded-lg flex-shrink-0">
-                            <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
-                              Discover Amazing Recipes
-                            </h3>
-                            <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
-                              Search through thousands of delicious recipes from
-                              around the world. Find recipes by ingredients,
-                              cuisine, dietary preferences, or simply type what
-                              you&apos;re craving! Use natural language for
-                              smarter searches (e.g., &quot;healthy pasta for
-                              dinner&quot;).
-                            </p>
-                            <div className="space-y-2">
-                              <p className="text-sm font-semibold text-purple-300 mb-2">
-                                Try searching for:
+                {/* Content area - wrapped to prevent hydration mismatches */}
+                <div suppressHydrationWarning>
+                  {/* Default Instructions - Show when no search term (only after mount to prevent hydration mismatch) */}
+                  {isMounted && !searchTerm.trim() && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="max-w-7xl mx-auto space-y-6"
+                    >
+                      <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 p-6 sm:p-8">
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 bg-purple-500/20 rounded-lg flex-shrink-0">
+                              <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                                Discover Amazing Recipes
+                              </h3>
+                              <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
+                                Search through thousands of delicious recipes
+                                from around the world. Find recipes by
+                                ingredients, cuisine, dietary preferences, or
+                                simply type what you&apos;re craving! Use
+                                natural language for smarter searches (e.g.,
+                                &quot;healthy pasta for dinner&quot;).
                               </p>
-                              <ul className="space-y-1 text-sm text-gray-400">
-                                <li className="flex items-center gap-2">
-                                  <span className="text-purple-400">•</span>
-                                  <span>
-                                    Recipe names (e.g., &quot;pasta&quot;,
-                                    &quot;chicken curry&quot;)
-                                  </span>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                  <span className="text-purple-400">•</span>
-                                  <span>
-                                    Ingredients (e.g., &quot;tomatoes&quot;,
-                                    &quot;chicken&quot;)
-                                  </span>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                  <span className="text-purple-400">•</span>
-                                  <span>
-                                    Cuisines (e.g., &quot;italian&quot;,
-                                    &quot;chinese&quot;, &quot;mexican&quot;)
-                                  </span>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                  <span className="text-purple-400">•</span>
-                                  <span>
-                                    Dietary preferences (e.g.,
-                                    &quot;vegan&quot;, &quot;gluten-free&quot;)
-                                  </span>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                  <span className="text-purple-400">•</span>
-                                  <span>
-                                    Natural language (e.g., &quot;quick healthy
-                                    dinner&quot;, &quot;pasta with tomatoes for
-                                    2&quot;)
-                                  </span>
-                                </li>
-                              </ul>
+                              <div className="space-y-2">
+                                <p className="text-sm font-semibold text-purple-300 mb-2">
+                                  Try searching for:
+                                </p>
+                                <ul className="space-y-1 text-sm text-gray-400">
+                                  <li className="flex items-center gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>
+                                      Recipe names (e.g., &quot;pasta&quot;,
+                                      &quot;chicken curry&quot;)
+                                    </span>
+                                  </li>
+                                  <li className="flex items-center gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>
+                                      Ingredients (e.g., &quot;tomatoes&quot;,
+                                      &quot;chicken&quot;)
+                                    </span>
+                                  </li>
+                                  <li className="flex items-center gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>
+                                      Cuisines (e.g., &quot;italian&quot;,
+                                      &quot;chinese&quot;, &quot;mexican&quot;)
+                                    </span>
+                                  </li>
+                                  <li className="flex items-center gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>
+                                      Dietary preferences (e.g.,
+                                      &quot;vegan&quot;,
+                                      &quot;gluten-free&quot;)
+                                    </span>
+                                  </li>
+                                  <li className="flex items-center gap-2">
+                                    <span className="text-purple-400">•</span>
+                                    <span>
+                                      Natural language (e.g., &quot;quick
+                                      healthy dinner&quot;, &quot;pasta with
+                                      tomatoes for 2&quot;)
+                                    </span>
+                                  </li>
+                                </ul>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </Card>
+
+                      {/* Weather-Based Suggestions */}
+                      <Suspense fallback={<SkeletonWeatherSuggestions />}>
+                        <WeatherBasedSuggestions />
+                      </Suspense>
+                    </motion.div>
+                  )}
+
+                  {/* Error Message */}
+                  <ErrorMessage message={apiError} />
+
+                  {/* API Limit Reached Message */}
+                  {searchResponse &&
+                    "apiLimitReached" in searchResponse &&
+                    searchResponse.apiLimitReached && (
+                      <Card className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-500/30">
+                        <CardContent className="p-6 text-center">
+                          <div className="space-y-3">
+                            <div className="p-3 bg-amber-500/20 rounded-lg inline-block mx-auto">
+                              <ChefHat className="h-8 w-8 text-amber-400 mx-auto" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-white">
+                              API Limit Reached
+                            </h3>
+                            <p className="text-sm text-gray-300">
+                              {searchResponse.message ||
+                                "Daily API limit reached. Recipe search will be available tomorrow."}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              All API keys have reached their daily limit.
+                              Please try again tomorrow or upgrade your
+                              Spoonacular plan for more daily points.
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                  {/* Search Results Metadata - Only render after mount to prevent hydration mismatch */}
+                  {isMounted &&
+                    !isSearching &&
+                    recipes.length > 0 &&
+                    searchResponse &&
+                    !(
+                      "apiLimitReached" in searchResponse &&
+                      searchResponse.apiLimitReached
+                    ) && (
+                      <SearchResultsMetadata
+                        searchResponse={searchResponse}
+                        currentResultsCount={recipes.length}
+                        searchTerm={searchTerm}
+                        className="mb-4"
+                      />
+                    )}
+
+                  {/* Recipe Grid - Only render after mount to prevent hydration mismatch with React Query cache */}
+                  {!isMounted ? (
+                    // During SSR/initial hydration: always show skeleton to ensure server/client match
+                    // This prevents React Query cache from causing hydration mismatches
+                    // We show skeleton regardless of searchTerm to ensure consistent rendering
+                    <SkeletonRecipeGrid count={8} />
+                  ) : isSearching ? (
+                    <SkeletonRecipeGrid count={8} />
+                  ) : recipes.length > 0 &&
+                    !(
+                      searchResponse &&
+                      "apiLimitReached" in searchResponse &&
+                      searchResponse.apiLimitReached
+                    ) ? (
+                    <RecipeGrid
+                      recipes={recipes}
+                      favouriteRecipes={favouriteRecipes}
+                      onFavouriteToggle={handleFavouriteToggle}
+                    />
+                  ) : isMounted &&
+                    !isSearching &&
+                    searchResponse &&
+                    !(
+                      "apiLimitReached" in searchResponse &&
+                      searchResponse.apiLimitReached
+                    ) &&
+                    recipes.length === 0 ? (
+                    // Empty state when no results found
+                    <Card className="bg-gradient-to-br from-slate-800/50 to-purple-900/30 border-purple-500/30">
+                      <CardContent className="p-8 text-center">
+                        <div className="space-y-4">
+                          <div className="p-4 bg-purple-500/20 rounded-full inline-block mx-auto">
+                            <ChefHat className="h-8 w-8 text-purple-400 mx-auto" />
+                          </div>
+                          <h3 className="text-xl font-bold text-white">
+                            {hasActiveFilters
+                              ? "No recipes found with these filters"
+                              : searchTerm.trim()
+                              ? `No recipes found for "${searchTerm}"`
+                              : "No recipes found"}
+                          </h3>
+                          <p className="text-sm text-gray-400">
+                            {hasActiveFilters
+                              ? "Try adjusting your filters or search for something else."
+                              : searchTerm.trim()
+                              ? "Try a different search term or browse our recipe collection."
+                              : "Start searching to discover amazing recipes!"}
+                          </p>
+                          {hasActiveFilters && (
+                            <div className="pt-4">
+                              <Button
+                                onClick={() => {
+                                  setSearchFilters({});
+                                  setCurrentPage(1);
+                                  toast.success("Filters cleared. Showing all results.");
+                                }}
+                                variant="outline"
+                                className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:text-white"
+                              >
+                                Clear Filters
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
                     </Card>
-                  </motion.div>
-                )}
-
-                {/* Error Message */}
-                <ErrorMessage message={apiError} />
-
-                {/* Search Results Metadata */}
-                {!isSearching && recipes.length > 0 && searchResponse && (
-                  <SearchResultsMetadata
-                    searchResponse={searchResponse}
-                    currentResultsCount={recipes.length}
-                    searchTerm={searchTerm}
-                    className="mb-4"
-                  />
-                )}
-
-                {/* Recipe Grid */}
-                {isSearching ? (
-                  <SkeletonRecipeGrid count={8} />
-                ) : recipes.length > 0 ? (
-                  <RecipeGrid
-                    recipes={recipes}
-                    favouriteRecipes={favouriteRecipes}
-                    onFavouriteToggle={handleFavouriteToggle}
-                  />
-                ) : null}
+                  ) : null}
+                </div>
 
                 {/* View More Button - Show if there are more results available (only for regular search, not AI search) */}
-                {recipes.length > 0 &&
+                {/* Only render after mount to prevent hydration mismatch with React Query cache */}
+                {isMounted &&
+                  recipes.length > 0 &&
                   searchResponse?.totalResults &&
                   recipes.length < searchResponse.totalResults &&
                   !searchResponse?.aiOptimized && (
@@ -441,6 +611,7 @@ const AppContent = () => {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
                 data-favourites-content
+                suppressHydrationWarning
               >
                 {isLoadingFavourites ? (
                   <SkeletonRecipeGrid count={4} />
@@ -471,6 +642,7 @@ const AppContent = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
+                suppressHydrationWarning
               >
                 {isAuthenticated ? (
                   selectedCollection ? (
@@ -508,6 +680,7 @@ const AppContent = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
+                suppressHydrationWarning
               >
                 {isAuthenticated ? (
                   <Suspense fallback={<SkeletonMealPlanner />}>
@@ -529,6 +702,7 @@ const AppContent = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
+                suppressHydrationWarning
               >
                 {isAuthenticated ? (
                   <Suspense fallback={<SkeletonShoppingList />}>

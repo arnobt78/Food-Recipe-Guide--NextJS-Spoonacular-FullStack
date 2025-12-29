@@ -107,7 +107,7 @@ const HeroHeader = memo(
 
         {/* Content overlay */}
         <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="text-center px-2 sm:px-0 max-w-7xl mx-auto">
+          <div className="text-center px-2 xl:px-0 max-w-7xl mx-auto">
             {/* Innovative subtitle with modern typography */}
             {subtitle && (
               <motion.div

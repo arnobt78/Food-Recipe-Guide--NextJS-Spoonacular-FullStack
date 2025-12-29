@@ -20,7 +20,7 @@ import {
   useRef,
   ReactNode,
 } from "react";
-import { Recipe, TabType, RecipeCollection } from "../types";
+import { Recipe, TabType, RecipeCollection, AdvancedFilterOptions } from "../types";
 
 interface RecipeContextType {
   selectedRecipe: Recipe | undefined;
@@ -33,6 +33,8 @@ interface RecipeContextType {
   setSelectedTab: (tab: TabType) => void;
   currentPage: number;
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
+  searchFilters: AdvancedFilterOptions;
+  setSearchFilters: (filters: AdvancedFilterOptions) => void;
 }
 
 const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
@@ -96,6 +98,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
   const [searchTerm, setSearchTermState] = useState<string>(initialState.searchTerm);
   const [selectedTab, setSelectedTabState] = useState<TabType>(initialState.selectedTab);
   const [currentPage, setCurrentPageState] = useState<number>(initialState.currentPage);
+  const [searchFilters, setSearchFiltersState] = useState<AdvancedFilterOptions>({});
 
   // Initialize from URL on mount (only once)
   useEffect(() => {
@@ -210,6 +213,11 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     isInitialMount.current = false;
   }, []);
 
+  // Handle search filters change
+  const handleSetSearchFilters = useCallback((filters: AdvancedFilterOptions) => {
+    setSearchFiltersState(filters);
+  }, []);
+
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({
@@ -223,6 +231,8 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
       setSelectedTab: handleSetSelectedTab,
       currentPage,
       setCurrentPage: handleSetCurrentPage,
+      searchFilters,
+      setSearchFilters: handleSetSearchFilters,
     }),
     [
       selectedRecipe,
@@ -234,6 +244,8 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
       handleSetSelectedTab,
       currentPage,
       handleSetCurrentPage,
+      searchFilters,
+      handleSetSearchFilters,
     ]
   );
 

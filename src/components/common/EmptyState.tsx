@@ -91,7 +91,7 @@ const EmptyState = memo(
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-sm sm:text-base text-gray-400 mb-6 px-2 sm:px-0"
+                className="text-sm sm:text-base text-gray-400 mb-6 px-2 xl:px-0"
               >
                 {subtitle}
               </motion.p>

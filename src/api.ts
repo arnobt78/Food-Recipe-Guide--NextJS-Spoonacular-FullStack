@@ -21,6 +21,10 @@ import {
   RecipeModificationResponse,
   ShareRecipeEmailRequest,
   ShareRecipeEmailResponse,
+  WeatherSuggestionsResponse,
+  FilterPreset,
+  AdvancedFilterOptions,
+  RecipeVideo,
 } from "./types";
 
 // Use relative paths for API calls - works with Next.js API routes
@@ -1639,4 +1643,302 @@ export const shareRecipeEmail = async (
   }
 
   return response.json() as Promise<ShareRecipeEmailResponse>;
+};
+
+/**
+ * Get weather-based recipe suggestions
+ * 
+ * @param location - Location object with lat/lon or city name
+ * @returns Promise with weather data and recipe suggestions
+ * @throws Error if request fails
+ */
+export const getWeatherSuggestions = async (location: {
+  lat?: number;
+  lon?: number;
+  city?: string;
+  units?: "metric" | "imperial";
+}): Promise<WeatherSuggestionsResponse> => {
+  const params = new URLSearchParams();
+  if (location.lat !== undefined && location.lon !== undefined) {
+    params.append("lat", location.lat.toString());
+    params.append("lon", location.lon.toString());
+  } else if (location.city) {
+    params.append("city", location.city);
+  }
+  if (location.units) {
+    params.append("units", location.units);
+  }
+
+  const apiPath = getApiUrl(`/api/weather/suggestions?${params.toString()}`);
+  const response = await fetch(apiPath, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to fetch weather suggestions. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<WeatherSuggestionsResponse>;
+};
+
+/**
+ * Get all filter presets for the current user
+ * 
+ * @returns Promise with array of filter presets
+ * @throws Error if request fails
+ */
+export const getFilterPresets = async (): Promise<FilterPreset[]> => {
+  const apiPath = getApiUrl("/api/filters/presets");
+  const response = await fetch(apiPath, {
+    method: "GET",
+    headers: await getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to fetch filter presets. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<FilterPreset[]>;
+};
+
+/**
+ * Get a single filter preset by ID
+ * 
+ * @param presetId - Filter preset ID
+ * @returns Promise with filter preset
+ * @throws Error if request fails
+ */
+export const getFilterPreset = async (presetId: string): Promise<FilterPreset> => {
+  const apiPath = getApiUrl(`/api/filters/presets/${presetId}`);
+  const response = await fetch(apiPath, {
+    method: "GET",
+    headers: await getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Filter preset not found");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to fetch filter preset. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<FilterPreset>;
+};
+
+/**
+ * Create a new filter preset
+ * 
+ * @param data - Filter preset data
+ * @returns Promise with created filter preset
+ * @throws Error if request fails
+ */
+export const createFilterPreset = async (data: {
+  name: string;
+  description?: string;
+  filters: AdvancedFilterOptions;
+}): Promise<FilterPreset> => {
+  const apiPath = getApiUrl("/api/filters/presets");
+  const response = await fetch(apiPath, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to create filter preset. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<FilterPreset>;
+};
+
+/**
+ * Update an existing filter preset
+ * 
+ * @param presetId - Filter preset ID
+ * @param data - Updated filter preset data
+ * @returns Promise with updated filter preset
+ * @throws Error if request fails
+ */
+export const updateFilterPreset = async (
+  presetId: string,
+  data: {
+    name: string;
+    description?: string;
+    filters: AdvancedFilterOptions;
+  }
+): Promise<FilterPreset> => {
+  const apiPath = getApiUrl(`/api/filters/presets/${presetId}`);
+  const response = await fetch(apiPath, {
+    method: "PUT",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Filter preset not found");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to update filter preset. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<FilterPreset>;
+};
+
+/**
+ * Delete a filter preset
+ * 
+ * @param presetId - Filter preset ID
+ * @returns Promise with success message
+ * @throws Error if request fails
+ */
+export const deleteFilterPreset = async (presetId: string): Promise<void> => {
+  const apiPath = getApiUrl(`/api/filters/presets/${presetId}`);
+  const response = await fetch(apiPath, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Filter preset not found");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to delete filter preset. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Get all videos for a recipe
+ * 
+ * @param recipeId - Recipe ID
+ * @returns Promise with array of recipe videos
+ * @throws Error if request fails
+ */
+export const getRecipeVideos = async (recipeId: number): Promise<RecipeVideo[]> => {
+  const apiPath = getApiUrl(`/api/recipes/videos?recipeId=${recipeId}`);
+  const response = await fetch(apiPath, {
+    method: "GET",
+    headers: await getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to fetch recipe videos. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<RecipeVideo[]>;
+};
+
+/**
+ * Add a video to a recipe
+ * 
+ * @param data - Video data
+ * @returns Promise with created video
+ * @throws Error if request fails
+ */
+export const addRecipeVideo = async (data: {
+  recipeId: number;
+  videoUrl: string;
+  videoType: "youtube" | "vimeo" | "custom";
+  title?: string;
+  description?: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  order?: number;
+}): Promise<RecipeVideo> => {
+  const apiPath = getApiUrl("/api/recipes/videos");
+  const response = await fetch(apiPath, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to add recipe video. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<RecipeVideo>;
+};
+
+/**
+ * Delete a recipe video
+ * 
+ * @param videoId - Video ID
+ * @returns Promise with success message
+ * @throws Error if request fails
+ */
+export const deleteRecipeVideo = async (videoId: string): Promise<void> => {
+  const apiPath = getApiUrl(`/api/recipes/videos/${videoId}`);
+  const response = await fetch(apiPath, {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("User not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Video not found");
+    }
+    const errorMessage = await extractErrorMessage(
+      response,
+      `Failed to delete recipe video. Status: ${response.status}`
+    );
+    throw new Error(errorMessage);
+  }
 };

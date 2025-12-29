@@ -308,6 +308,7 @@ export interface SearchRecipesResponse {
   aiOptimized?: boolean; // Indicates if search was AI-optimized
   originalQuery?: string; // Original natural language query
   searchParams?: Record<string, unknown>; // AI-extracted search parameters
+  apiLimitReached?: boolean; // Indicates if all API keys have reached their daily limit
 }
 
 /**
@@ -529,4 +530,80 @@ export interface EmailMealPlanRequest {
 export interface NewsletterSubscriptionRequest {
   email: string;
   name?: string;
+}
+
+/**
+ * Weather data interface from OpenWeather API
+ */
+export interface WeatherData {
+  temperature: number;
+  condition: string;
+  description: string;
+  humidity: number;
+  windSpeed: number;
+  location: string;
+  icon: string;
+}
+
+/**
+ * Weather-based recipe suggestions response
+ */
+export interface WeatherSuggestionsResponse {
+  weather: WeatherData;
+  suggestions: Recipe[];
+  reasoning: string;
+  apiLimitReached?: boolean;
+  message?: string;
+}
+
+/**
+ * Advanced filter options interface
+ */
+export interface AdvancedFilterOptions {
+  diet?: string;
+  cuisine?: string;
+  mealType?: string;
+  maxReadyTime?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  minProtein?: number;
+  maxProtein?: number;
+  minCarbs?: number;
+  maxCarbs?: number;
+  minFat?: number;
+  maxFat?: number;
+  intolerances?: string;
+  excludeIngredients?: string;
+  includeIngredients?: string;
+}
+
+/**
+ * Filter preset interface
+ */
+export interface FilterPreset {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  filters: AdvancedFilterOptions;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Recipe video interface
+ */
+export interface RecipeVideo {
+  id: string;
+  recipeId: number;
+  userId: string;
+  videoUrl: string;
+  videoType: "youtube" | "vimeo" | "custom";
+  title?: string;
+  description?: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }

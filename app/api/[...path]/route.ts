@@ -44,6 +44,7 @@ import {
   getPresetById,
   presetToCloudinaryOptions,
 } from "../../../src/config/upload-presets";
+import { Recipe } from "../../../src/types";
 
 // Initialize Cloudinary
 cloudinary.config({
@@ -259,18 +260,46 @@ export async function GET(
       const page = parseInt(searchParams.get("page") || "0", 10);
       const searchOptions = parseSearchOptions(searchParams);
 
-      const results = await searchRecipes(
-        searchTerm,
-        page,
-        searchOptions && Object.keys(searchOptions).length > 0
-          ? searchOptions
-          : undefined
-      );
+      try {
+        const results = await searchRecipes(
+          searchTerm,
+          page,
+          searchOptions && Object.keys(searchOptions).length > 0
+            ? searchOptions
+            : undefined
+        );
 
-      // Add performance header
-      const response = jsonResponse(results);
-      response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
-      return response;
+        // Add performance header
+        const response = jsonResponse(results);
+        response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
+        return response;
+      } catch (error) {
+        // Check if it's an API limit error
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        const isApiLimitError =
+          errorMessage.includes("daily limit") ||
+          errorMessage.includes("points limit") ||
+          errorMessage.includes("All API keys");
+
+        if (isApiLimitError) {
+          return jsonResponse(
+            {
+              results: [],
+              totalResults: 0,
+              offset: 0,
+              number: 0,
+              apiLimitReached: true,
+              message:
+                "Daily API limit reached. Recipe search will be available tomorrow.",
+            },
+            200
+          );
+        }
+
+        // Re-throw other errors
+        throw error;
+      }
     }
 
     // Route: /api/recipes/autocomplete
@@ -1669,6 +1698,458 @@ Return ONLY valid JSON, no other text.`;
       });
     }
 
+    // Route: /api/recipes/videos (GET) - Get all videos for a recipe
+    if (path[0] === "recipes" && path[1] === "videos" && path.length === 2) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const { searchParams: videoSearchParams } = new URL(request.url);
+      const recipeId = videoSearchParams.get("recipeId");
+      if (!recipeId) {
+        return jsonResponse({ error: "Recipe ID is required" }, 400);
+      }
+
+      const recipeIdNum = Number(recipeId);
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
+        return jsonResponse({ error: "Invalid recipe ID format" }, 400);
+      }
+
+      try {
+        const videos = await prisma.recipeVideo.findMany({
+          where: {
+            recipeId: recipeIdNum,
+            userId: auth.userId,
+          },
+          orderBy: { order: "asc" },
+        });
+
+        return jsonResponse(videos);
+      } catch (error) {
+        console.error("Get recipe videos error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch recipe videos",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/weather/suggestions (GET) - Weather-based recipe suggestions
+    if (
+      path[0] === "weather" &&
+      path[1] === "suggestions" &&
+      path.length === 2
+    ) {
+      const openWeatherApiKey = process.env.OPENWEATHER_API_KEY;
+      if (!openWeatherApiKey) {
+        return jsonResponse(
+          { error: "OpenWeather API key not configured" },
+          500
+        );
+      }
+
+      // Get location from query params (lat/lon or city name)
+      const { searchParams: weatherSearchParams } = new URL(request.url);
+      const lat = weatherSearchParams.get("lat");
+      const lon = weatherSearchParams.get("lon");
+      const city = weatherSearchParams.get("city");
+      const units = weatherSearchParams.get("units") || "metric";
+
+      // Validate location parameters
+      if (!lat && !lon && !city) {
+        return jsonResponse(
+          { error: "Location required: provide lat/lon or city parameter" },
+          400
+        );
+      }
+
+      try {
+        // Fetch weather data from OpenWeather API
+        let weatherUrl = "";
+        if (lat && lon) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${openWeatherApiKey}&units=${units}`;
+        } else if (city) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+            city
+          )}&appid=${openWeatherApiKey}&units=${units}`;
+        } else {
+          return jsonResponse({ error: "Invalid location parameters" }, 400);
+        }
+
+        const weatherResponse = await fetch(weatherUrl);
+        if (!weatherResponse.ok) {
+          const errorData = await weatherResponse.json().catch(() => ({}));
+          return jsonResponse(
+            { error: errorData.message || "Failed to fetch weather data" },
+            weatherResponse.status
+          );
+        }
+        const weatherData = await weatherResponse.json();
+
+        // Extract weather information
+        const temperature = Math.round(weatherData.main.temp);
+        const condition = weatherData.weather[0]?.main || "Clear";
+        const description = weatherData.weather[0]?.description || "";
+        const humidity = weatherData.main.humidity;
+        const windSpeed = weatherData.wind?.speed || 0;
+        const location = weatherData.name || city || `${lat},${lon}`;
+        const icon = weatherData.weather[0]?.icon || "01d";
+
+        // Use AI to generate diverse recipe queries based on weather, location, and conditions
+        const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+        const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        const groqApiKey = process.env.GROQ_API_KEY;
+
+        // Build context for AI query generation
+        const weatherContext = `Weather conditions:
+- Location: ${location}
+- Temperature: ${temperature}°C
+- Condition: ${condition} (${description})
+- Humidity: ${humidity}%
+- Wind Speed: ${windSpeed} m/s
+
+Generate 5-8 diverse recipe search queries that would be perfect for these weather conditions. Consider:
+1. Temperature-appropriate dishes (warming for cold, refreshing for hot)
+2. Regional cuisine preferences based on location
+3. Seasonal ingredients and cooking methods
+4. Comfort level (hearty for cold, light for hot)
+5. Cooking time (longer for cold weather, quicker for hot)
+
+Return ONLY a JSON array of search query strings, like: ["soup", "stew", "curry", "pasta", "roast"]`;
+
+        let searchQueries: string[] = [];
+        let aiReasoning = "";
+
+        // Try AI to generate queries
+        if (openRouterApiKey || geminiApiKey || groqApiKey) {
+          try {
+            // Try OpenRouter first
+            if (openRouterApiKey) {
+              const openRouterResponse = await fetch(
+                "https://openrouter.ai/api/v1/chat/completions",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${openRouterApiKey}`,
+                    "HTTP-Referer":
+                      process.env.NEXT_PUBLIC_APP_URL ||
+                      "http://localhost:3000",
+                    "X-Title": "Recipe Spoonacular",
+                  },
+                  body: JSON.stringify({
+                    model: "openai/gpt-4o-mini",
+                    messages: [
+                      {
+                        role: "system",
+                        content:
+                          "You are a culinary expert. Generate diverse recipe search queries as a JSON array of strings. Return ONLY the JSON array, no other text.",
+                      },
+                      { role: "user", content: weatherContext },
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 200,
+                  }),
+                }
+              );
+
+              if (openRouterResponse.ok) {
+                const openRouterData = await openRouterResponse.json();
+                const aiContent =
+                  openRouterData.choices?.[0]?.message?.content || "[]";
+                try {
+                  const jsonMatch =
+                    aiContent.match(/\[[\s\S]*?\]/) ||
+                    aiContent.match(/\[.*\]/);
+                  if (jsonMatch) {
+                    searchQueries = JSON.parse(jsonMatch[0]);
+                    aiReasoning = `AI-generated ${searchQueries.length} diverse recipe queries based on weather conditions`;
+                  }
+                } catch (parseError) {
+                  console.warn(
+                    "[Weather API] Failed to parse OpenRouter response:",
+                    parseError
+                  );
+                }
+              }
+            }
+
+            // Fallback to Gemini
+            if (searchQueries.length === 0 && geminiApiKey) {
+              const geminiResponse = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    contents: [
+                      {
+                        parts: [
+                          {
+                            text: `Generate diverse recipe search queries as a JSON array. ${weatherContext}`,
+                          },
+                        ],
+                      },
+                    ],
+                    generationConfig: {
+                      temperature: 0.7,
+                      maxOutputTokens: 200,
+                    },
+                  }),
+                }
+              );
+
+              if (geminiResponse.ok) {
+                const geminiData = await geminiResponse.json();
+                const aiContent =
+                  geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+                try {
+                  const jsonMatch = aiContent.match(/\[[\s\S]*?\]/);
+                  if (jsonMatch) {
+                    searchQueries = JSON.parse(jsonMatch[0]);
+                    aiReasoning = `AI-generated ${searchQueries.length} diverse recipe queries based on weather conditions`;
+                  }
+                } catch (parseError) {
+                  console.warn(
+                    "[Weather API] Failed to parse Gemini response:",
+                    parseError
+                  );
+                }
+              }
+            }
+
+            // Final fallback to Groq
+            if (searchQueries.length === 0 && groqApiKey) {
+              const groqResponse = await fetch(
+                "https://api.groq.com/openai/v1/chat/completions",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${groqApiKey}`,
+                  },
+                  body: JSON.stringify({
+                    model: "llama-3.1-70b-versatile",
+                    messages: [
+                      {
+                        role: "system",
+                        content:
+                          "Generate diverse recipe search queries as a JSON array of strings. Return ONLY the JSON array.",
+                      },
+                      { role: "user", content: weatherContext },
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 200,
+                  }),
+                }
+              );
+
+              if (groqResponse.ok) {
+                const groqData = await groqResponse.json();
+                const aiContent =
+                  groqData.choices?.[0]?.message?.content || "[]";
+                try {
+                  const jsonMatch = aiContent.match(/\[[\s\S]*?\]/);
+                  if (jsonMatch) {
+                    searchQueries = JSON.parse(jsonMatch[0]);
+                    aiReasoning = `AI-generated ${searchQueries.length} diverse recipe queries based on weather conditions`;
+                  }
+                } catch (parseError) {
+                  console.warn(
+                    "[Weather API] Failed to parse Groq response:",
+                    parseError
+                  );
+                }
+              }
+            }
+          } catch (aiError) {
+            console.warn("[Weather API] AI query generation failed:", aiError);
+          }
+        }
+
+        // Fallback to hardcoded queries if AI failed
+        if (searchQueries.length === 0) {
+          if (temperature < 15) {
+            searchQueries = [
+              "soup",
+              "stew",
+              "comfort food",
+              "warm",
+              "hot",
+              "curry",
+              "roast",
+              "casserole",
+            ];
+            aiReasoning =
+              "Cold weather calls for warming comfort foods like soups and stews";
+          } else if (temperature > 25) {
+            searchQueries = [
+              "salad",
+              "cold",
+              "refreshing",
+              "light",
+              "summer",
+              "smoothie",
+              "gazpacho",
+              "ceviche",
+            ];
+            aiReasoning = "Hot weather is perfect for light, refreshing meals";
+          } else {
+            searchQueries = [
+              "pasta",
+              "balanced",
+              "meal",
+              "dinner",
+              "lunch",
+              "grill",
+              "stir fry",
+              "bowl",
+            ];
+            aiReasoning =
+              "Moderate weather allows for balanced, seasonal recipes";
+          }
+        }
+
+        // Generate AI reasoning if not already set
+        if (!aiReasoning) {
+          if (temperature < 15) {
+            aiReasoning = `Cold weather (${temperature}°C) in ${location} calls for warming comfort foods`;
+          } else if (temperature > 25) {
+            aiReasoning = `Hot weather (${temperature}°C) in ${location} is perfect for light, refreshing meals`;
+          } else {
+            aiReasoning = `Moderate weather (${temperature}°C) in ${location} allows for balanced, seasonal recipes`;
+          }
+        }
+
+        // Get all available API keys
+        const apiKeys = [
+          process.env.SPOONACULAR_API_KEY,
+          process.env.API_KEY,
+          process.env.API_KEY_2,
+          process.env.API_KEY_3,
+        ].filter((key): key is string => !!key);
+
+        if (apiKeys.length === 0) {
+          return jsonResponse(
+            { error: "Spoonacular API key not configured" },
+            500
+          );
+        }
+
+        // Make multiple parallel recipe API calls
+        const recipePromises: Promise<Recipe[]>[] = [];
+        const usedApiKeys = new Set<string>();
+
+        // Create promises for parallel execution
+        for (const searchQuery of searchQueries.slice(0, 6)) {
+          // Limit to 6 queries to avoid too many calls
+          // Find an available API key
+          const apiKey =
+            apiKeys.find((key) => !usedApiKeys.has(key)) || apiKeys[0];
+          usedApiKeys.add(apiKey);
+
+          const recipeSearchUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(
+            searchQuery
+          )}&number=8&addRecipeInformation=true&apiKey=${apiKey}`;
+
+          console.log(
+            `[Weather API] Searching recipes with query: "${searchQuery}" using API key`
+          );
+
+          recipePromises.push(
+            fetch(recipeSearchUrl)
+              .then(async (response) => {
+                if (response.ok) {
+                  const recipeData = await response.json();
+                  const foundRecipes = recipeData.results || [];
+                  console.log(
+                    `[Weather API] Found ${foundRecipes.length} recipes for "${searchQuery}"`
+                  );
+                  return foundRecipes;
+                } else {
+                  // Log error but don't block other queries
+                  await response.json().catch(() => ({})); // Consume response body
+                  console.warn(
+                    `[Weather API] Query "${searchQuery}" failed: ${response.status}`
+                  );
+                  return [];
+                }
+              })
+              .catch((error) => {
+                console.warn(
+                  `[Weather API] Query "${searchQuery}" error:`,
+                  error
+                );
+                return [];
+              })
+          );
+        }
+
+        // Wait for all parallel requests to complete
+        const recipeResults = await Promise.all(recipePromises);
+
+        // Combine and deduplicate recipes
+        const recipeMap = new Map<number, Recipe>();
+
+        for (const recipes of recipeResults) {
+          for (const recipe of recipes) {
+            if (recipe.id && !recipeMap.has(recipe.id)) {
+              recipeMap.set(recipe.id, recipe);
+            }
+          }
+        }
+
+        const recipes = Array.from(recipeMap.values()).slice(0, 20); // Limit to 20 unique recipes
+
+        console.log(
+          `[Weather API] Combined ${recipes.length} unique recipes from ${searchQueries.length} queries`
+        );
+
+        // Check for API limit errors (if no recipes found after multiple queries)
+        // Note: This is a simple check - in production, you might want to check response status codes
+        const apiLimitReached =
+          recipes.length === 0 && searchQueries.length > 0;
+
+        return jsonResponse({
+          weather: {
+            temperature,
+            condition,
+            description,
+            humidity,
+            windSpeed,
+            location,
+            icon: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+          },
+          suggestions: recipes,
+          reasoning: aiReasoning || "Weather-appropriate recipe suggestions",
+          ...(apiLimitReached && {
+            apiLimitReached: true,
+            message:
+              "Daily API limit reached. Recipe suggestions will be available tomorrow.",
+          }),
+        });
+      } catch (error) {
+        console.error("Weather suggestions error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch weather-based suggestions",
+          },
+          500
+        );
+      }
+    }
+
     // ============================================
     // COLLECTIONS ROUTES
     // ============================================
@@ -1931,6 +2412,81 @@ Return ONLY valid JSON, no other text.`;
       );
       response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
       return response;
+    }
+
+    // ============================================
+    // FILTER PRESETS ROUTES
+    // ============================================
+
+    // Route: /api/filters/presets (GET) - Get all filter presets for user
+    if (
+      path[0] === "filters" &&
+      path[1] === "presets" &&
+      path.length === 2 &&
+      request.method === "GET"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      try {
+        const presets = await prisma.filterPreset.findMany({
+          where: { userId: auth.userId },
+          orderBy: { createdAt: "desc" },
+        });
+
+        return jsonResponse(presets);
+      } catch (error) {
+        console.error("Get filter presets error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch filter presets",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/filters/presets/[id] (GET) - Get single filter preset
+    if (
+      path[0] === "filters" &&
+      path[1] === "presets" &&
+      path[2] &&
+      path.length === 3 &&
+      request.method === "GET"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const presetId = path[2];
+
+      try {
+        const preset = await prisma.filterPreset.findFirst({
+          where: {
+            id: presetId,
+            userId: auth.userId,
+          },
+        });
+
+        if (!preset) {
+          return jsonResponse({ error: "Filter preset not found" }, 404);
+        }
+
+        return jsonResponse(preset);
+      } catch (error) {
+        console.error("Get filter preset error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch filter preset",
+          },
+          500
+        );
+      }
     }
 
     // Not found
@@ -2622,6 +3178,129 @@ export async function POST(
       );
     }
 
+    // Route: /api/weather/suggestions (GET) - Weather-based recipe suggestions
+    if (
+      path[0] === "weather" &&
+      path[1] === "suggestions" &&
+      path.length === 2 &&
+      request.method === "GET"
+    ) {
+      const openWeatherApiKey = process.env.OPENWEATHER_API_KEY;
+      if (!openWeatherApiKey) {
+        return jsonResponse(
+          { error: "OpenWeather API key not configured" },
+          500
+        );
+      }
+
+      // Get location from query params (lat/lon or city name)
+      const { searchParams: weatherSearchParams } = new URL(request.url);
+      const lat = weatherSearchParams.get("lat");
+      const lon = weatherSearchParams.get("lon");
+      const city = weatherSearchParams.get("city");
+      const units = weatherSearchParams.get("units") || "metric";
+
+      // Validate location parameters
+      if (!lat && !lon && !city) {
+        return jsonResponse(
+          { error: "Location required: provide lat/lon or city parameter" },
+          400
+        );
+      }
+
+      try {
+        // Fetch weather data from OpenWeather API
+        let weatherUrl = "";
+        if (lat && lon) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${openWeatherApiKey}&units=${units}`;
+        } else if (city) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+            city
+          )}&appid=${openWeatherApiKey}&units=${units}`;
+        } else {
+          return jsonResponse({ error: "Invalid location parameters" }, 400);
+        }
+
+        const weatherResponse = await fetch(weatherUrl);
+        if (!weatherResponse.ok) {
+          const errorData = await weatherResponse.json().catch(() => ({}));
+          return jsonResponse(
+            { error: errorData.message || "Failed to fetch weather data" },
+            weatherResponse.status
+          );
+        }
+        const weatherData = await weatherResponse.json();
+
+        const temperature = weatherData.main.temp;
+        const condition = weatherData.weather[0].main;
+        const description = weatherData.weather[0].description;
+        const humidity = weatherData.main.humidity;
+        const windSpeed = weatherData.wind.speed;
+        const icon = weatherData.weather[0].icon;
+        const location = weatherData.name;
+
+        // Determine recipe suggestions based on weather
+        let searchQuery = "";
+        let aiReasoning = "";
+
+        if (temperature < 10) {
+          searchQuery = "warm comforting soup or stew";
+          aiReasoning = "It's cold outside! Enjoy a warm and comforting meal.";
+        } else if (temperature > 25) {
+          searchQuery = "light refreshing salad or grilled dish";
+          aiReasoning = "Perfect weather for something light and refreshing!";
+        } else {
+          searchQuery = "balanced meal seasonal";
+          aiReasoning =
+            "Moderate weather allows for balanced, seasonal recipes";
+        }
+
+        // Use AI to get recipe suggestions based on weather
+        const apiKey = process.env.SPOONACULAR_API_KEY;
+        if (!apiKey) {
+          return jsonResponse(
+            { error: "Spoonacular API key not configured" },
+            500
+          );
+        }
+
+        const recipeSearchUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(
+          searchQuery
+        )}&number=10&addRecipeInformation=true&apiKey=${apiKey}`;
+        const recipeResponse = await fetch(recipeSearchUrl);
+        let recipes: Recipe[] = [];
+        if (recipeResponse.ok) {
+          const recipeData = await recipeResponse.json();
+          recipes = recipeData.results || [];
+        }
+
+        return jsonResponse({
+          weather: {
+            temperature,
+            condition,
+            description,
+            humidity,
+            windSpeed,
+            location,
+            icon: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+          },
+          suggestions: recipes,
+          reasoning: aiReasoning || "Weather-appropriate recipe suggestions",
+        });
+      } catch (error) {
+        console.error("Weather suggestions error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch weather-based suggestions",
+          },
+          500
+        );
+      }
+    }
+
     // Route: /api/email/share (POST) - Share recipe via email
     if (path[0] === "email" && path[1] === "share" && path.length === 2) {
       const auth = await requireAuth(request);
@@ -2910,6 +3589,686 @@ export async function POST(
         success: true,
         message: "Recipe shared successfully via email",
       });
+    }
+
+    // Route: /api/weather/suggestions (GET) - Weather-based recipe suggestions
+    if (
+      path[0] === "weather" &&
+      path[1] === "suggestions" &&
+      path.length === 2
+    ) {
+      const openWeatherApiKey = process.env.OPENWEATHER_API_KEY;
+      if (!openWeatherApiKey) {
+        return jsonResponse(
+          { error: "OpenWeather API key not configured" },
+          500
+        );
+      }
+
+      // Get location from query params (lat/lon or city name)
+      const { searchParams } = new URL(request.url);
+      const lat = searchParams.get("lat");
+      const lon = searchParams.get("lon");
+      const city = searchParams.get("city");
+      const units = searchParams.get("units") || "metric";
+
+      // Validate location parameters
+      if (!lat && !lon && !city) {
+        return jsonResponse(
+          { error: "Location required: provide lat/lon or city parameter" },
+          400
+        );
+      }
+
+      try {
+        // Fetch weather data from OpenWeather API
+        let weatherUrl = "";
+        if (lat && lon) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${openWeatherApiKey}&units=${units}`;
+        } else if (city) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+            city
+          )}&appid=${openWeatherApiKey}&units=${units}`;
+        } else {
+          return jsonResponse({ error: "Invalid location parameters" }, 400);
+        }
+
+        const weatherResponse = await fetch(weatherUrl);
+        if (!weatherResponse.ok) {
+          const errorData = await weatherResponse.json().catch(() => ({}));
+          return jsonResponse(
+            { error: errorData.message || "Failed to fetch weather data" },
+            weatherResponse.status
+          );
+        }
+
+        const weatherData = await weatherResponse.json();
+
+        // Extract weather information
+        const temperature = Math.round(weatherData.main.temp);
+        const condition = weatherData.weather[0]?.main || "Clear";
+        const description = weatherData.weather[0]?.description || "";
+        const humidity = weatherData.main.humidity;
+        const windSpeed = weatherData.wind?.speed || 0;
+        const location = weatherData.name || city || `${lat},${lon}`;
+        const icon = weatherData.weather[0]?.icon || "01d";
+
+        // Determine recipe suggestions based on weather using AI
+        const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+        const geminiApiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        const groqApiKey = process.env.GROQ_LLAMA_API_KEY;
+
+        let aiReasoning = "";
+        let searchQuery = "";
+
+        // Create weather-based search query using AI
+        const weatherPrompt = `Based on the current weather conditions:
+- Temperature: ${temperature}°C
+- Condition: ${condition} (${description})
+- Humidity: ${humidity}%
+- Wind Speed: ${windSpeed} m/s
+- Location: ${location}
+
+Suggest appropriate recipe types and create a search query for recipes that would be perfect for this weather. Consider:
+- Cold weather (below 15°C): Comfort foods, soups, stews, hot beverages, warming spices
+- Hot weather (above 25°C): Light salads, cold dishes, refreshing drinks, grilled foods
+- Moderate weather (15-25°C): Balanced meals, seasonal ingredients
+- Rainy/cloudy: Comfort foods, indoor cooking
+- Sunny: Fresh, light, outdoor-friendly recipes
+
+Return ONLY a JSON object with this exact structure:
+{
+  "searchQuery": "brief recipe search query (max 50 chars)",
+  "reasoning": "brief explanation of why these recipes suit this weather (max 200 chars)"
+}`;
+
+        // Try AI APIs in fallback order: OpenRouter → Gemini → Groq
+        let aiResponseData: Record<string, unknown> | null = null;
+
+        if (openRouterApiKey) {
+          try {
+            const openRouterResponse = await fetch(
+              "https://openrouter.ai/api/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${openRouterApiKey}`,
+                  "HTTP-Referer":
+                    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+                  "X-Title": "Recipe Spoonacular",
+                },
+                body: JSON.stringify({
+                  model: "anthropic/claude-3.5-sonnet",
+                  messages: [
+                    {
+                      role: "system",
+                      content:
+                        "You are a culinary expert. Analyze weather conditions and suggest appropriate recipe types. Return ONLY valid JSON, no other text.",
+                    },
+                    { role: "user", content: weatherPrompt },
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 300,
+                }),
+              }
+            );
+
+            if (openRouterResponse.ok) {
+              const openRouterData = await openRouterResponse.json();
+              const content =
+                openRouterData.choices?.[0]?.message?.content || "";
+              try {
+                aiResponseData = JSON.parse(content);
+              } catch {
+                // Try to extract JSON from markdown code blocks
+                const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+                if (jsonMatch) {
+                  aiResponseData = JSON.parse(jsonMatch[1]);
+                }
+              }
+            }
+          } catch (_error) {
+            // Fall through to next AI service
+          }
+        }
+
+        if (!aiResponseData && geminiApiKey) {
+          try {
+            const geminiResponse = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      parts: [
+                        {
+                          text: `${weatherPrompt}\n\nReturn ONLY valid JSON, no other text.`,
+                        },
+                      ],
+                    },
+                  ],
+                  generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 300,
+                  },
+                }),
+              }
+            );
+
+            if (geminiResponse.ok) {
+              const geminiData = await geminiResponse.json();
+              const content =
+                geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+              try {
+                aiResponseData = JSON.parse(content);
+              } catch {
+                const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+                if (jsonMatch) {
+                  aiResponseData = JSON.parse(jsonMatch[1]);
+                }
+              }
+            }
+          } catch (_error) {
+            // Fall through to next AI service
+          }
+        }
+
+        if (!aiResponseData && groqApiKey) {
+          try {
+            const groqResponse = await fetch(
+              "https://api.groq.com/openai/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${groqApiKey}`,
+                },
+                body: JSON.stringify({
+                  messages: [
+                    {
+                      role: "system",
+                      content:
+                        "You are a culinary expert. Analyze weather conditions and suggest appropriate recipe types. Return ONLY valid JSON, no other text.",
+                    },
+                    { role: "user", content: weatherPrompt },
+                  ],
+                  model: "llama-3.1-70b-versatile",
+                  temperature: 0.7,
+                  max_tokens: 300,
+                }),
+              }
+            );
+
+            if (groqResponse.ok) {
+              const groqData = await groqResponse.json();
+              const content = groqData.choices?.[0]?.message?.content || "";
+              try {
+                aiResponseData = JSON.parse(content);
+              } catch {
+                const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+                if (jsonMatch) {
+                  aiResponseData = JSON.parse(jsonMatch[1]);
+                }
+              }
+            }
+          } catch (_error) {
+            // Fall through to default
+          }
+        }
+
+        // Extract search query and reasoning from AI response
+        if (aiResponseData) {
+          searchQuery =
+            (typeof aiResponseData.searchQuery === "string"
+              ? aiResponseData.searchQuery
+              : "") || "";
+          aiReasoning =
+            (typeof aiResponseData.reasoning === "string"
+              ? aiResponseData.reasoning
+              : "") || "";
+        }
+
+        // Fallback search query if AI fails
+        if (!searchQuery) {
+          if (temperature < 15) {
+            searchQuery = "comfort food soup stew";
+            aiReasoning = "Cold weather calls for warming comfort foods";
+          } else if (temperature > 25) {
+            searchQuery = "light salad refreshing";
+            aiReasoning = "Hot weather is perfect for light, refreshing meals";
+          } else {
+            searchQuery = "balanced meal seasonal";
+            aiReasoning =
+              "Moderate weather allows for balanced, seasonal recipes";
+          }
+        }
+
+        // Search for recipes using the weather-based query
+        const apiKey = process.env.API_KEY || "";
+        if (!apiKey) {
+          return jsonResponse(
+            { error: "Spoonacular API key not configured" },
+            500
+          );
+        }
+
+        const recipeSearchUrl = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(
+          searchQuery
+        )}&number=10&addRecipeInformation=true&apiKey=${apiKey}`;
+        const recipeResponse = await fetch(recipeSearchUrl);
+        let recipes: Recipe[] = [];
+
+        if (recipeResponse.ok) {
+          const recipeData = await recipeResponse.json();
+          recipes = recipeData.results || [];
+        }
+
+        return jsonResponse({
+          weather: {
+            temperature,
+            condition,
+            description,
+            humidity,
+            windSpeed,
+            location,
+            icon: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+          },
+          suggestions: recipes,
+          reasoning: aiReasoning || "Weather-appropriate recipe suggestions",
+        });
+      } catch (error) {
+        console.error("Weather suggestions error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch weather-based suggestions",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/filters/presets (POST) - Create new filter preset
+    if (
+      path[0] === "filters" &&
+      path[1] === "presets" &&
+      path.length === 2 &&
+      request.method === "POST"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const { name, description, filters } = body;
+
+      if (!name || typeof name !== "string" || !name.trim()) {
+        return jsonResponse({ error: "Preset name is required" }, 400);
+      }
+
+      if (!filters || typeof filters !== "object") {
+        return jsonResponse({ error: "Filters object is required" }, 400);
+      }
+
+      // Validate name length
+      if (name.trim().length > 100) {
+        return jsonResponse(
+          { error: "Preset name must be less than 100 characters" },
+          400
+        );
+      }
+
+      // Validate description length if provided
+      if (
+        description &&
+        typeof description === "string" &&
+        description.trim().length > 500
+      ) {
+        return jsonResponse(
+          { error: "Description must be less than 500 characters" },
+          400
+        );
+      }
+
+      try {
+        const preset = await prisma.filterPreset.create({
+          data: {
+            userId: auth.userId,
+            name: name.trim(),
+            description:
+              description && typeof description === "string"
+                ? description.trim()
+                : null,
+            filters: filters as Prisma.InputJsonValue,
+          },
+        });
+
+        return jsonResponse(preset, 201);
+      } catch (error) {
+        console.error("Create filter preset error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to create filter preset",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/filters/presets/[id] (PUT) - Update filter preset
+    if (
+      path[0] === "filters" &&
+      path[1] === "presets" &&
+      path[2] &&
+      path.length === 3 &&
+      request.method === "PUT"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const presetId = path[2];
+      const { name, description, filters } = body;
+
+      if (!name || typeof name !== "string" || !name.trim()) {
+        return jsonResponse({ error: "Preset name is required" }, 400);
+      }
+
+      if (!filters || typeof filters !== "object") {
+        return jsonResponse({ error: "Filters object is required" }, 400);
+      }
+
+      // Validate name length
+      if (name.trim().length > 100) {
+        return jsonResponse(
+          { error: "Preset name must be less than 100 characters" },
+          400
+        );
+      }
+
+      // Validate description length if provided
+      if (
+        description &&
+        typeof description === "string" &&
+        description.trim().length > 500
+      ) {
+        return jsonResponse(
+          { error: "Description must be less than 500 characters" },
+          400
+        );
+      }
+
+      try {
+        // Check if preset exists and belongs to user
+        const existing = await prisma.filterPreset.findFirst({
+          where: {
+            id: presetId,
+            userId: auth.userId,
+          },
+        });
+
+        if (!existing) {
+          return jsonResponse({ error: "Filter preset not found" }, 404);
+        }
+
+        const preset = await prisma.filterPreset.update({
+          where: { id: presetId },
+          data: {
+            name: name.trim(),
+            description:
+              description && typeof description === "string"
+                ? description.trim()
+                : null,
+            filters: filters as Prisma.InputJsonValue,
+          },
+        });
+
+        return jsonResponse(preset);
+      } catch (error) {
+        console.error("Update filter preset error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to update filter preset",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/filters/presets/[id] (DELETE) - Delete filter preset
+    if (
+      path[0] === "filters" &&
+      path[1] === "presets" &&
+      path[2] &&
+      path.length === 3 &&
+      request.method === "DELETE"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const presetId = path[2];
+
+      try {
+        // Check if preset exists and belongs to user
+        const existing = await prisma.filterPreset.findFirst({
+          where: {
+            id: presetId,
+            userId: auth.userId,
+          },
+        });
+
+        if (!existing) {
+          return jsonResponse({ error: "Filter preset not found" }, 404);
+        }
+
+        await prisma.filterPreset.delete({
+          where: { id: presetId },
+        });
+
+        return jsonResponse({
+          success: true,
+          message: "Filter preset deleted",
+        });
+      } catch (error) {
+        console.error("Delete filter preset error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to delete filter preset",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/recipes/videos (POST) - Add video to recipe
+    if (
+      path[0] === "recipes" &&
+      path[1] === "videos" &&
+      path.length === 2 &&
+      request.method === "POST"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const {
+        recipeId,
+        videoUrl,
+        videoType,
+        title,
+        description,
+        thumbnailUrl,
+        duration,
+        order,
+      } = body;
+
+      if (!recipeId || !videoUrl || !videoType) {
+        return jsonResponse(
+          { error: "Recipe ID, video URL, and video type are required" },
+          400
+        );
+      }
+
+      // Validate types
+      if (typeof recipeId !== "number" && typeof recipeId !== "string") {
+        return jsonResponse(
+          { error: "Recipe ID must be a number or string" },
+          400
+        );
+      }
+      if (typeof videoUrl !== "string") {
+        return jsonResponse({ error: "Video URL must be a string" }, 400);
+      }
+      if (typeof videoType !== "string") {
+        return jsonResponse({ error: "Video type must be a string" }, 400);
+      }
+
+      // Validate recipe ID
+      const recipeIdNum = Number(recipeId);
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
+        return jsonResponse({ error: "Invalid recipe ID format" }, 400);
+      }
+
+      // Validate video type
+      const validVideoTypes = ["youtube", "vimeo", "custom"];
+      if (!validVideoTypes.includes(videoType)) {
+        return jsonResponse(
+          {
+            error: `Invalid video type. Must be one of: ${validVideoTypes.join(
+              ", "
+            )}`,
+          },
+          400
+        );
+      }
+
+      // Validate video URL format
+      if (
+        videoType === "youtube" &&
+        !videoUrl.includes("youtube.com") &&
+        !videoUrl.includes("youtu.be")
+      ) {
+        return jsonResponse({ error: "Invalid YouTube URL" }, 400);
+      }
+      if (videoType === "vimeo" && !videoUrl.includes("vimeo.com")) {
+        return jsonResponse({ error: "Invalid Vimeo URL" }, 400);
+      }
+
+      // Extract YouTube video ID if needed
+      let processedVideoUrl: string = videoUrl;
+      if (videoType === "youtube") {
+        const youtubeIdMatch = videoUrl.match(
+          /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
+        );
+        if (youtubeIdMatch && youtubeIdMatch[1]) {
+          processedVideoUrl = `https://www.youtube.com/watch?v=${youtubeIdMatch[1]}`;
+        }
+      }
+
+      try {
+        // Get max order for this recipe
+        const maxOrder = await prisma.recipeVideo.findFirst({
+          where: {
+            userId: auth.userId,
+            recipeId: recipeIdNum,
+          },
+          orderBy: { order: "desc" },
+        });
+
+        const video = await prisma.recipeVideo.create({
+          data: {
+            userId: auth.userId,
+            recipeId: recipeIdNum,
+            videoUrl: processedVideoUrl,
+            videoType: videoType,
+            title: title && typeof title === "string" ? title.trim() : null,
+            description:
+              description && typeof description === "string"
+                ? description.trim()
+                : null,
+            thumbnailUrl:
+              thumbnailUrl && typeof thumbnailUrl === "string"
+                ? thumbnailUrl.trim()
+                : null,
+            duration:
+              duration && typeof duration === "number" ? duration : null,
+            order:
+              order !== undefined ? Number(order) : (maxOrder?.order ?? 0) + 1,
+          },
+        });
+
+        return jsonResponse(video, 201);
+      } catch (error) {
+        console.error("Create recipe video error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to create recipe video",
+          },
+          500
+        );
+      }
+    }
+
+    // Route: /api/recipes/videos/[id] (DELETE) - Delete recipe video
+    if (
+      path[0] === "recipes" &&
+      path[1] === "videos" &&
+      path[2] &&
+      path.length === 3 &&
+      request.method === "DELETE"
+    ) {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      const videoId = path[2];
+
+      try {
+        // Check if video exists and belongs to user
+        const existing = await prisma.recipeVideo.findFirst({
+          where: {
+            id: videoId,
+            userId: auth.userId,
+          },
+        });
+
+        if (!existing) {
+          return jsonResponse({ error: "Video not found" }, 404);
+        }
+
+        await prisma.recipeVideo.delete({
+          where: { id: videoId },
+        });
+
+        return jsonResponse({ success: true, message: "Video deleted" });
+      } catch (error) {
+        console.error("Delete recipe video error:", error);
+        return jsonResponse(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to delete recipe video",
+          },
+          500
+        );
+      }
     }
 
     // Route: /api/recipes/notes (POST)

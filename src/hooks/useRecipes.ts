@@ -16,7 +16,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import * as api from "../api";
-import { Recipe, SearchRecipesResponse, RecipeInformation, SimilarRecipe, AutocompleteRecipe, DishPairingForWine, WinePairing, RecipeRecommendationResponse, RecipeAnalysisResponse, RecipeModificationResponse } from "../types";
+import { Recipe, SearchRecipesResponse, RecipeInformation, SimilarRecipe, AutocompleteRecipe, DishPairingForWine, WinePairing, RecipeRecommendationResponse, RecipeAnalysisResponse, RecipeModificationResponse, AdvancedFilterOptions } from "../types";
 import { toast } from "sonner";
 import { invalidateFavouritesQueries } from "../utils/queryInvalidation";
 import {
@@ -53,16 +53,20 @@ import { useAuthCheck } from "./useAuthCheck";
 export function useSearchRecipes(
   searchTerm: string,
   page: number = 1,
-  enabled: boolean = true
+  enabled: boolean = true,
+  filters?: AdvancedFilterOptions
 ) {
   return useQuery<SearchRecipesResponse, Error>({
-    queryKey: ["recipes", "search", searchTerm, page],
+    queryKey: ["recipes", "search", searchTerm, page, filters],
     queryFn: async () => {
-      // First, check localStorage/sessionStorage cache
-      const cachedData = getCachedSearchResults(searchTerm, page);
-      if (cachedData) {
-        // Return cached data immediately (no API call)
-        return cachedData;
+      // First, check localStorage/sessionStorage cache (only if no filters applied)
+      // Filters change the results, so we can't use cached data when filters are active
+      if (!filters || Object.keys(filters).length === 0) {
+        const cachedData = getCachedSearchResults(searchTerm, page);
+        if (cachedData) {
+          // Return cached data immediately (no API call)
+          return cachedData;
+        }
       }
 
       // Check if cache-only mode is enabled (development only)
@@ -70,7 +74,9 @@ export function useSearchRecipes(
         // Return mock data if available, otherwise return empty results
         if (shouldUseMockData()) {
           const mockData = getMockSearchResults(searchTerm, page);
-          saveSearchResults(searchTerm, page, mockData);
+          if (!filters || Object.keys(filters).length === 0) {
+            saveSearchResults(searchTerm, page, mockData);
+          }
           return mockData;
         }
         // Return empty results in cache-only mode
@@ -82,15 +88,18 @@ export function useSearchRecipes(
       // Enable fillIngredients to get usedIngredients/missedIngredients for better UX
       // Enable addRecipeInformation to get ALL recipe properties for comprehensive display
       // Enable addRecipeNutrition to get nutrition data in search results
+      // Merge filters with default options
       const apiData = await api.searchRecipes(searchTerm, page, {
         fillIngredients: true, // Get ingredient match information (usedIngredients, missedIngredients, unusedIngredients)
         addRecipeInformation: true, // Get ALL recipe properties (readyInMinutes, servings, pricePerServing, spoonacularScore, healthScore, cuisines, diets, dishTypes, occasions, all dietary flags, etc.)
         addRecipeNutrition: true, // Get nutrition data in search results (calories, protein, etc.)
+        // Apply advanced filters if provided
+        ...(filters || {}),
       });
 
       // Save to both localStorage and sessionStorage for future use
-      // Only save if API call was successful
-      if (apiData && !apiData.status && !apiData.code) {
+      // Only save if API call was successful and no filters applied (filters change results)
+      if (apiData && !apiData.status && !apiData.code && (!filters || Object.keys(filters).length === 0)) {
         saveSearchResults(searchTerm, page, apiData);
       }
 
@@ -102,12 +111,16 @@ export function useSearchRecipes(
     retry: 1,
     refetchOnMount: true,
     // Use cached data as placeholder while checking storage/API
+    // Only use cache if no filters are applied
     placeholderData: (previousData) => {
       // If we have previous React Query cache, use it
       if (previousData) return previousData;
 
-      // Otherwise, try to get from localStorage/sessionStorage
-      return getCachedSearchResults(searchTerm, page) || undefined;
+      // Otherwise, try to get from localStorage/sessionStorage (only if no filters)
+      if (!filters || Object.keys(filters).length === 0) {
+        return getCachedSearchResults(searchTerm, page) || undefined;
+      }
+      return undefined;
     },
   });
 }
@@ -131,13 +144,22 @@ export function useFavouriteRecipes() {
   return useQuery({
     queryKey: ["recipes", "favourites"],
     queryFn: async () => {
-      const response = await api.getFavouriteRecipes();
-      return Array.isArray(response.results) ? response.results : [];
+      try {
+        const response = await api.getFavouriteRecipes();
+        return Array.isArray(response.results) ? response.results : [];
+      } catch (error: unknown) {
+        // Handle 401 gracefully - return empty array if not authenticated
+        const err = error as { status?: number; message?: string };
+        if (err.status === 401) {
+          return [];
+        }
+        throw error;
+      }
     },
     enabled: isAuthenticated, // Only fetch if user is authenticated (SSR-safe)
     staleTime: Infinity,
     gcTime: 5 * 60 * 1000,
-    retry: 1,
+    retry: false, // Don't retry on auth errors
     refetchOnMount: true,
     placeholderData: (previousData) => previousData,
   });

@@ -31,6 +31,7 @@ import {
   ShoppingCart,
   List,
   Wine,
+  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -158,6 +159,11 @@ const RecipeDetailSidebar = memo(
               id: "images",
               label: "Images",
               icon: ImageIcon,
+            },
+            {
+              id: "videos",
+              label: "Videos",
+              icon: Video,
             },
           ]
         : []),

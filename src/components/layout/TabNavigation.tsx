@@ -43,7 +43,7 @@ const TabNavigation = memo(({ value, onValueChange }: TabNavigationProps) => {
       <Tabs value={value} onValueChange={(v) => onValueChange(v as TabType)}>
         <TabsList
           className={`grid w-full ${
-            isAuthenticated ? "max-w-5xl grid-cols-5" : "max-w-md grid-cols-2"
+            isAuthenticated ? "max-w-5xl grid-cols-5" : "max-w-md grid-cols-1"
           } bg-slate-800/50 border border-green-500/30 shadow-lg shadow-green-500/10`}
         >
           <TabsTrigger
@@ -54,16 +54,16 @@ const TabNavigation = memo(({ value, onValueChange }: TabNavigationProps) => {
             <span className="hidden sm:inline">Recipe Search</span>
             <span className="sm:hidden">Search</span>
           </TabsTrigger>
-          <TabsTrigger
-            value="favourites"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-900 data-[state=active]:via-emerald-700 data-[state=active]:to-green-800 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-700/50 text-xs sm:text-sm transition-all duration-300"
-          >
-            <Heart className="h-4 w-4" />
-            <span className="hidden sm:inline">Favourites</span>
-            <span className="sm:hidden">Favs</span>
-          </TabsTrigger>
           {isAuthenticated && (
             <>
+              <TabsTrigger
+                value="favourites"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-900 data-[state=active]:via-emerald-700 data-[state=active]:to-green-800 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-700/50 text-xs sm:text-sm transition-all duration-300"
+              >
+                <Heart className="h-4 w-4" />
+                <span className="hidden sm:inline">Favourites</span>
+                <span className="sm:hidden">Favs</span>
+              </TabsTrigger>
               <TabsTrigger
                 value="collections"
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-900 data-[state=active]:via-emerald-700 data-[state=active]:to-green-800 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-green-700/50 text-xs sm:text-sm transition-all duration-300"

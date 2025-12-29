@@ -87,6 +87,9 @@ const RecipeNotes = lazy(() => import("@/components/recipes/RecipeNotes"));
 const RecipeImageGallery = lazy(
   () => import("@/components/recipes/RecipeImageGallery")
 );
+const RecipeVideoPlayer = lazy(
+  () => import("@/components/videos/RecipeVideoPlayer")
+);
 const AddToCollectionDialog = lazy(
   () => import("@/components/collections/AddToCollectionDialog")
 );
@@ -1918,6 +1921,17 @@ const RecipePageContent = memo(() => {
                       <div className="space-y-4 mt-0 transition-opacity duration-300">
                         <Suspense fallback={<div className="h-64 w-full" />}>
                           {recipe && <RecipeImageGallery recipe={recipe} />}
+                        </Suspense>
+                      </div>
+                    )}
+
+                    {/* Videos Tab - Lazy loaded */}
+                    {activeTab === "videos" && isAuthenticated && (
+                      <div className="space-y-4 mt-0 transition-opacity duration-300">
+                        <Suspense fallback={<div className="h-64 w-full" />}>
+                          {recipeInfo && (
+                            <RecipeVideoPlayer recipeId={recipeInfo.id} />
+                          )}
                         </Suspense>
                       </div>
                     )}

@@ -37,6 +37,7 @@ const ViewMoreButton = memo(({
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       className={`flex justify-center items-center w-full my-8 ${className}`}
+      suppressHydrationWarning
     >
       <Button
         onClick={onClick}
