@@ -2,7 +2,7 @@
  * NextAuth v5 Configuration
  * 
  * Authentication configuration using NextAuth v5 (Auth.js)
- * Supports Google OAuth provider and Credentials (email/password) for test accounts
+ * Supports Google OAuth provider and Credentials (email/password) for database-backed authentication
  * 
  * Following DEVELOPMENT_RULES.md: Centralized auth, TypeScript, proper types
  */
@@ -14,26 +14,14 @@ import { prisma } from "./lib/prisma";
 import bcrypt from "bcryptjs";
 
 /**
- * Test account credentials (for development/testing)
- * These match the test accounts defined in DROPDOWN_TEST_CREDENTIALS_DOCS.md
- */
-const testAccounts: Record<string, { email: string; password: string; name: string }> = {
-  "test-user": {
-    email: "test@user.com",
-    password: "12345678",
-    name: "Test User",
-  },
-};
-
-/**
  * NextAuth configuration
  * Uses Google OAuth provider and Credentials provider for authentication
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     /**
-     * Credentials Provider - Email/Password authentication for test accounts
-     * Only works with predefined test accounts (development/testing)
+     * Credentials Provider - Email/Password authentication
+     * Only authenticates users that exist in the database with matching credentials
      */
     Credentials({
       name: "Credentials",
@@ -50,48 +38,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        // First, check database for user with password
+        // Check database for user with password
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: email.trim().toLowerCase() },
           });
 
-          if (dbUser && dbUser.password) {
-            // User exists in database - verify password
-            const isValidPassword = await bcrypt.compare(password, dbUser.password);
-            if (isValidPassword) {
-              return {
-                id: dbUser.id,
-                email: dbUser.email,
-                name: dbUser.name || undefined,
-                image: dbUser.picture || undefined,
-              };
-            }
-            // Password doesn't match
+          if (!dbUser || !dbUser.password) {
+            // User doesn't exist or has no password set
             return null;
           }
+
+          // User exists in database - verify password
+          const isValidPassword = await bcrypt.compare(password, dbUser.password);
+          if (isValidPassword) {
+            return {
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name || undefined,
+              image: dbUser.picture || undefined,
+            };
+          }
+
+          // Password doesn't match
+          return null;
         } catch (error) {
           console.error("Database authentication error:", error);
-          // Fall through to test accounts if database check fails
-        }
-
-        // Fallback: Check against hardcoded test accounts (for development/testing)
-        const account = Object.values(testAccounts).find(
-          (acc) => acc.email === email
-        );
-
-        if (!account || account.password !== password) {
+          // Return null on database errors - don't allow authentication
           return null;
         }
-
-        // Return user object for test account
-        // Use consistent ID based on email (not timestamp) so same user gets same ID
-        return {
-          id: `test_${email.split("@")[0]}`,
-          email: account.email,
-          name: account.name,
-          image: undefined,
-        };
       },
     }),
     /**

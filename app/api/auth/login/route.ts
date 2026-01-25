@@ -2,7 +2,7 @@
  * Auth0 Password Login API Route
  *
  * Handles email/password authentication using Auth0's Resource Owner Password Grant
- * This allows test accounts to login directly without redirecting to Auth0's Universal Login
+ * This allows users to login directly without redirecting to Auth0's Universal Login
  *
  * Following DEVELOPMENT_RULES.md: Centralized API routes, proper error handling
  */

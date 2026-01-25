@@ -51,7 +51,7 @@ interface LoginDialogProps {
 
 /**
  * Account helper credentials (for convenience - auto-fills form fields)
- * These are just helpers to quickly fill the form - authentication still requires
+ * These are just UI helpers to quickly fill the form - authentication still requires
  * the user to exist in the database with matching credentials
  */
 const accountHelpers: Record<string, { email: string; password: string }> = {
@@ -73,7 +73,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 /**
  * Login Dialog Component
- * Displays test account dropdown, email/password form, and Google OAuth button
+ * Displays test account dropdown (UI helper), email/password form, and Google OAuth button
  */
 export function LoginDialog({
   open,
@@ -104,7 +104,7 @@ export function LoginDialog({
   /**
    * Handle account helper selection from dropdown
    * Auto-fills email and password fields for convenience
-   * Note: User must still exist in database with these credentials
+   * Note: User must exist in database with these credentials for authentication to work
    */
   const handleRoleSelect = useCallback(
     (value: string) => {
@@ -201,7 +201,7 @@ export function LoginDialog({
           {/* Account Helper Dropdown */}
           <div className="space-y-2">
             <Label htmlFor="test-account-select" className="text-white">
-              Quick Fill (Account Helper)
+              Test Account To Login With
             </Label>
             <Select
               key={`select-${selectedRole || "empty"}`}
@@ -212,14 +212,14 @@ export function LoginDialog({
                 id="test-account-select"
                 className="border-emerald-500/50 bg-slate-800/50 text-white focus:ring-emerald-500/50 focus:border-emerald-500 rounded-lg"
               >
-                <SelectValue placeholder="Select to auto-fill credentials" />
+                <SelectValue placeholder="Select Test User Account" />
               </SelectTrigger>
               <SelectContent className="border-gray-600 bg-gray-800">
                 <SelectItem
                   value="test-user"
                   className="cursor-pointer text-white focus:bg-gray-700 focus:text-white"
                 >
-                  Test User (test@user.com)
+                  Test User
                 </SelectItem>
                 {selectedRole && (
                   <SelectItem
