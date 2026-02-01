@@ -42,10 +42,11 @@ import {
   useRemoveFavouriteRecipe,
 } from "../../hooks/useRecipes";
 import { usePostHog } from "../../hooks/usePostHog";
-import { Recipe, SearchRecipesResponse } from "../../types";
+import { Recipe, SearchRecipesResponse, WeatherSuggestionsResponse } from "../../types";
 import { toast } from "sonner";
-import { ChefHat } from "lucide-react";
+import { ChefHat, Cloud } from "lucide-react";
 import SearchResultsMetadata from "../search/SearchResultsMetadata";
+import { Badge } from "../ui/badge";
 
 // Code splitting: Lazy load large components that are conditionally rendered
 const CollectionManager = lazy(
@@ -66,9 +67,32 @@ const AppContent = () => {
   // Track if component is mounted to prevent hydration mismatches
   // React Query cache can cause server/client mismatch, so we render search results only after mount
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Weather state - stores weather data from WeatherWidget in hero section
+  // Weather recipes are displayed in the tab content area
+  const [weatherData, setWeatherData] = useState<WeatherSuggestionsResponse | null>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState<Error | null>(null);
+  const [searchMode, setSearchMode] = useState<"search" | "weather">("search");
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+  
+  // Handle weather data changes from WeatherWidget
+  const handleWeatherDataChange = useCallback((
+    data: WeatherSuggestionsResponse | null, 
+    isLoading: boolean, 
+    error: Error | null
+  ) => {
+    setWeatherData(data);
+    setIsWeatherLoading(isLoading);
+    setWeatherError(error);
+  }, []);
+  
+  // Handle search mode change from HeroSearchSection
+  const handleSearchModeChange = useCallback((mode: "search" | "weather") => {
+    setSearchMode(mode);
   }, []);
 
   const {
@@ -388,6 +412,8 @@ const AppContent = () => {
             }
           }}
           isSearching={isSearching}
+          onWeatherDataChange={handleWeatherDataChange}
+          onSearchModeChange={handleSearchModeChange}
         />
       </HeroHeader>
 
@@ -411,8 +437,140 @@ const AppContent = () => {
               >
                 {/* Content area - wrapped to prevent hydration mismatches */}
                 <div suppressHydrationWarning>
-                  {/* Default Instructions - Show when no search term (only after mount to prevent hydration mismatch) */}
-                  {isMounted && !searchTerm.trim() && !hasActiveFilters && (
+                  {/* Weather-Based Recipe Suggestions - Show when weather mode is active */}
+                  {isMounted && searchMode === "weather" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-full mx-auto space-y-6"
+                    >
+                      {/* Loading State */}
+                      {isWeatherLoading && <SkeletonRecipeGrid count={6} />}
+
+                      {/* Error State */}
+                      {weatherError && !isWeatherLoading && (
+                        <Card className="bg-slate-800/50 border-red-500/30 p-4">
+                          <CardContent className="p-6 text-center">
+                            <p className="text-red-400 mb-2">
+                              Failed to load weather suggestions
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              {weatherError.message || "Please try again later"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Weather Recipe Suggestions */}
+                      {weatherData && !isWeatherLoading && !weatherError && (
+                        <>
+                          {weatherData.suggestions && weatherData.suggestions.length > 0 ? (
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-white">
+                                  Perfect Recipes for This Weather
+                                </h3>
+                                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                                  {weatherData.suggestions.length} recipes
+                                </Badge>
+                              </div>
+                              <RecipeGrid
+                                recipes={weatherData.suggestions}
+                                favouriteRecipes={favouriteRecipes}
+                                onFavouriteToggle={handleFavouriteToggle}
+                              />
+                            </div>
+                          ) : weatherData.apiLimitReached ? (
+                            <Card className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-500/30">
+                              <CardContent className="p-6 text-center">
+                                <div className="space-y-3">
+                                  <div className="p-3 bg-amber-500/20 rounded-lg inline-block mx-auto">
+                                    <Cloud className="h-8 w-8 text-amber-400 mx-auto" />
+                                  </div>
+                                  <h3 className="text-lg font-semibold text-white">
+                                    API Limit Reached
+                                  </h3>
+                                  <p className="text-sm text-gray-300">
+                                    {weatherData.message ||
+                                      "Daily API limit reached. Recipe suggestions will be available tomorrow."}
+                                  </p>
+                                  <p className="text-xs text-gray-400 mt-2">
+                                    Weather data is still available above. You can still
+                                    search for recipes manually using the search bar!
+                                  </p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ) : !weatherData.weather ? (
+                            // No location set yet - show instructions
+                            <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/30 p-6 sm:p-8">
+                              <div className="space-y-4">
+                                <div className="flex items-start gap-4">
+                                  <div className="p-3 bg-blue-500/20 rounded-lg flex-shrink-0">
+                                    <Cloud className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                                      Weather-Based Recipe Suggestions
+                                    </h3>
+                                    <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
+                                      Enter your city above or allow location access to get
+                                      AI-powered recipe suggestions perfect for your current weather!
+                                      Hot day? Get refreshing salads. Cold and rainy? Warm soups await!
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </Card>
+                          ) : (
+                            // Weather loaded but no suggestions
+                            <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/30">
+                              <CardContent className="p-6 text-center">
+                                <div className="space-y-3">
+                                  <div className="p-3 bg-blue-500/20 rounded-lg inline-block mx-auto">
+                                    <Cloud className="h-8 w-8 text-blue-400 mx-auto" />
+                                  </div>
+                                  <h3 className="text-lg font-semibold text-white">
+                                    No Weather Suggestions Available
+                                  </h3>
+                                  <p className="text-sm text-gray-300">
+                                    Try refreshing or check your location settings.
+                                  </p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                        </>
+                      )}
+
+                      {/* No data yet - show placeholder */}
+                      {!weatherData && !isWeatherLoading && !weatherError && (
+                        <Card className="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-500/30 p-6 sm:p-8">
+                          <div className="space-y-4">
+                            <div className="flex items-start gap-4">
+                              <div className="p-3 bg-blue-500/20 rounded-lg flex-shrink-0">
+                                <Cloud className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                                  Weather-Based Recipe Suggestions
+                                </h3>
+                                <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
+                                  Enter your city above or allow location access to get
+                                  AI-powered recipe suggestions perfect for your current weather!
+                                  Hot day? Get refreshing salads. Cold and rainy? Warm soups await!
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Default Instructions - Show when search mode is active and no search term */}
+                  {isMounted && searchMode === "search" && !searchTerm.trim() && !hasActiveFilters && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -473,11 +631,12 @@ const AppContent = () => {
                     </motion.div>
                   )}
 
-                  {/* Error Message */}
-                  <ErrorMessage message={apiError} />
+                  {/* Error Message - Only show in search mode */}
+                  {searchMode === "search" && <ErrorMessage message={apiError} />}
 
-                  {/* API Limit Reached Message */}
-                  {searchResponse &&
+                  {/* API Limit Reached Message - Only show in search mode */}
+                  {searchMode === "search" &&
+                    searchResponse &&
                     "apiLimitReached" in searchResponse &&
                     searchResponse.apiLimitReached && (
                       <Card className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-500/30">
@@ -503,8 +662,9 @@ const AppContent = () => {
                       </Card>
                     )}
 
-                  {/* Search Results Metadata - Only render after mount to prevent hydration mismatch */}
+                  {/* Search Results Metadata - Only render after mount in search mode */}
                   {isMounted &&
+                    searchMode === "search" &&
                     !isSearching &&
                     recipes.length > 0 &&
                     searchResponse &&
@@ -520,80 +680,85 @@ const AppContent = () => {
                       />
                     )}
 
-                  {/* Recipe Grid - Only render after mount to prevent hydration mismatch with React Query cache */}
-                  {!isMounted ? (
-                    // During SSR/initial hydration: always show skeleton to ensure server/client match
-                    // This prevents React Query cache from causing hydration mismatches
-                    // We show skeleton regardless of searchTerm to ensure consistent rendering
-                    <SkeletonRecipeGrid count={8} />
-                  ) : isSearching ? (
-                    <SkeletonRecipeGrid count={8} />
-                  ) : recipes.length > 0 &&
-                    !(
-                      searchResponse &&
-                      "apiLimitReached" in searchResponse &&
-                      searchResponse.apiLimitReached
-                    ) ? (
-                    <RecipeGrid
-                      recipes={recipes}
-                      favouriteRecipes={favouriteRecipes}
-                      onFavouriteToggle={handleFavouriteToggle}
-                    />
-                  ) : isMounted &&
-                    !isSearching &&
-                    searchResponse &&
-                    !(
-                      "apiLimitReached" in searchResponse &&
-                      searchResponse.apiLimitReached
-                    ) &&
-                    recipes.length === 0 ? (
-                    // Empty state when no results found
-                    <Card className="bg-gradient-to-br from-slate-800/50 to-purple-900/30 border-purple-500/30">
-                      <CardContent className="p-8 text-center">
-                        <div className="space-y-4">
-                          <div className="p-4 bg-purple-500/20 rounded-full inline-block mx-auto">
-                            <ChefHat className="h-8 w-8 text-purple-400 mx-auto" />
-                          </div>
-                          <h3 className="text-xl font-bold text-white">
-                            {hasActiveFilters
-                              ? "No recipes found with these filters"
-                              : searchTerm.trim()
-                              ? `No recipes found for "${searchTerm}"`
-                              : "No recipes found"}
-                          </h3>
-                          <p className="text-sm text-gray-400">
-                            {hasActiveFilters
-                              ? "Try adjusting your filters or search for something else."
-                              : searchTerm.trim()
-                              ? "Try a different search term or browse our recipe collection."
-                              : "Start searching to discover amazing recipes!"}
-                          </p>
-                          {hasActiveFilters && (
-                            <div className="pt-4">
-                              <Button
-                                onClick={() => {
-                                  setSearchFilters({});
-                                  setCurrentPage(1);
-                                  toast.success(
-                                    "Filters cleared. Showing all results."
-                                  );
-                                }}
-                                variant="outline"
-                                className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:text-white"
-                              >
-                                Clear Filters
-                              </Button>
+                  {/* Recipe Grid - Only render after mount in search mode */}
+                  {searchMode === "search" && (
+                    <>
+                      {!isMounted ? (
+                        // During SSR/initial hydration: always show skeleton to ensure server/client match
+                        // This prevents React Query cache from causing hydration mismatches
+                        // We show skeleton regardless of searchTerm to ensure consistent rendering
+                        <SkeletonRecipeGrid count={8} />
+                      ) : isSearching ? (
+                        <SkeletonRecipeGrid count={8} />
+                      ) : recipes.length > 0 &&
+                        !(
+                          searchResponse &&
+                          "apiLimitReached" in searchResponse &&
+                          searchResponse.apiLimitReached
+                        ) ? (
+                        <RecipeGrid
+                          recipes={recipes}
+                          favouriteRecipes={favouriteRecipes}
+                          onFavouriteToggle={handleFavouriteToggle}
+                        />
+                      ) : isMounted &&
+                        !isSearching &&
+                        searchResponse &&
+                        !(
+                          "apiLimitReached" in searchResponse &&
+                          searchResponse.apiLimitReached
+                        ) &&
+                        recipes.length === 0 ? (
+                        // Empty state when no results found
+                        <Card className="bg-gradient-to-br from-slate-800/50 to-purple-900/30 border-purple-500/30">
+                          <CardContent className="p-8 text-center">
+                            <div className="space-y-4">
+                              <div className="p-4 bg-purple-500/20 rounded-full inline-block mx-auto">
+                                <ChefHat className="h-8 w-8 text-purple-400 mx-auto" />
+                              </div>
+                              <h3 className="text-xl font-bold text-white">
+                                {hasActiveFilters
+                                  ? "No recipes found with these filters"
+                                  : searchTerm.trim()
+                                  ? `No recipes found for "${searchTerm}"`
+                                  : "No recipes found"}
+                              </h3>
+                              <p className="text-sm text-gray-400">
+                                {hasActiveFilters
+                                  ? "Try adjusting your filters or search for something else."
+                                  : searchTerm.trim()
+                                  ? "Try a different search term or browse our recipe collection."
+                                  : "Start searching to discover amazing recipes!"}
+                              </p>
+                              {hasActiveFilters && (
+                                <div className="pt-4">
+                                  <Button
+                                    onClick={() => {
+                                      setSearchFilters({});
+                                      setCurrentPage(1);
+                                      toast.success(
+                                        "Filters cleared. Showing all results."
+                                      );
+                                    }}
+                                    variant="outline"
+                                    className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 hover:text-white"
+                                  >
+                                    Clear Filters
+                                  </Button>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : null}
+                          </CardContent>
+                        </Card>
+                      ) : null}
+                    </>
+                  )}
                 </div>
 
                 {/* View More Button - Show if there are more results available (only for regular search, not AI search) */}
-                {/* Only render after mount to prevent hydration mismatch with React Query cache */}
+                {/* Only render after mount in search mode */}
                 {isMounted &&
+                  searchMode === "search" &&
                   recipes.length > 0 &&
                   searchResponse?.totalResults &&
                   recipes.length < searchResponse.totalResults &&

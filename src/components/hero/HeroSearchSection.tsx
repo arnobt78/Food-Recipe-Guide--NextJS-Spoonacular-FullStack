@@ -5,7 +5,7 @@
  * - Toggle button system for Search/Weather modes
  * - Smooth fade-in animations with framer-motion
  * - SearchInput with Advanced Filters (Search mode)
- * - Weather-Based Suggestions (Weather mode)
+ * - Weather Widget (Weather mode) - only displays widget, recipes shown in tab area
  * - Responsive design for mobile/desktop
  * - Memoized for performance
  *
@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { AdvancedFilterOptions } from "../../types";
+import { AdvancedFilterOptions, WeatherSuggestionsResponse } from "../../types";
 // Components imported directly for instant display
 // Loading states for API data are handled internally by each component
 import AdvancedFilters from "../filters/AdvancedFilters";
-import WeatherBasedSuggestions from "../weather/WeatherBasedSuggestions";
+import WeatherWidget from "../weather/WeatherWidget";
 
 type SearchMode = "search" | "weather";
 
@@ -38,6 +38,9 @@ interface HeroSearchSectionProps {
   onApplyFilters: () => void;
   isSearching: boolean;
   className?: string;
+  // Weather data callbacks - pass weather data to parent for display in tab content
+  onWeatherDataChange?: (data: WeatherSuggestionsResponse | null, isLoading: boolean, error: Error | null) => void;
+  onSearchModeChange?: (mode: SearchMode) => void;
 }
 
 /**
@@ -55,13 +58,19 @@ const HeroSearchSection = memo(
     onApplyFilters,
     isSearching,
     className = "",
+    onWeatherDataChange,
+    onSearchModeChange,
   }: HeroSearchSectionProps) => {
     const [activeMode, setActiveMode] = useState<SearchMode>("search");
 
     // Handle mode change with smooth transition
     const handleModeChange = useCallback((mode: SearchMode) => {
       setActiveMode(mode);
-    }, []);
+      // Notify parent of mode change
+      if (onSearchModeChange) {
+        onSearchModeChange(mode);
+      }
+    }, [onSearchModeChange]);
 
     return (
       <motion.div
@@ -163,7 +172,11 @@ const HeroSearchSection = memo(
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <WeatherBasedSuggestions className="w-full mx-auto" />
+              {/* Weather Widget only - recipes are displayed in tab content area */}
+              <WeatherWidget 
+                className="w-full mx-auto" 
+                onWeatherDataChange={onWeatherDataChange}
+              />
             </motion.div>
           )}
         </AnimatePresence>
