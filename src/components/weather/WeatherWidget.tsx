@@ -66,10 +66,12 @@ const WeatherWidget = memo(
 
     // Auto-refetch when showing cached "API Limit Reached" - better UX
     // This ensures fresh data is fetched when user switches to weather mode
+    // Use removeQueries to clear old data so loading skeleton shows instead of stale error
     useEffect(() => {
       if (location && data?.apiLimitReached && !isLoading) {
-        // Cached API limit response - auto-refetch to check if keys are available now
-        queryClient.invalidateQueries({
+        // Cached API limit response - remove old data and refetch fresh
+        // This shows loading state instead of the old "API Limit Reached" message
+        queryClient.removeQueries({
           queryKey: ["weather", "suggestions", location],
         });
         refetch();

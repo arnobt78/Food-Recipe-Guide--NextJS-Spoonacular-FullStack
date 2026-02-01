@@ -55,13 +55,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userId: null,
   });
 
-  // Invalidate business insights when auth state changes (login/logout)
+  // Clear ALL user-specific cache when auth state changes (login/logout/user switch)
+  // This prevents old user's data from flashing when switching accounts
   useEffect(() => {
     const prevState = prevAuthState.current;
-    const authChanged = prevState.isAuthenticated !== isAuthenticated || prevState.userId !== userId;
+    const userChanged = prevState.userId !== userId;
+    const authChanged = prevState.isAuthenticated !== isAuthenticated;
     
-    if (authChanged && !isLoading) {
-      // Auth state changed - invalidate business insights to refetch with new user data
+    if ((userChanged || authChanged) && !isLoading) {
+      // User changed or logged out - clear ALL user-specific queries to prevent data flash
+      // Remove queries completely (not just invalidate) so old data doesn't show
+      queryClient.removeQueries({ queryKey: ["recipes", "favourites"] });
+      queryClient.removeQueries({ queryKey: ["collections"] });
+      queryClient.removeQueries({ queryKey: ["collection"] });
+      queryClient.removeQueries({ queryKey: ["shopping-lists"] });
+      queryClient.removeQueries({ queryKey: ["meal-plan"] });
+      queryClient.removeQueries({ queryKey: ["recipe-note"] });
+      queryClient.removeQueries({ queryKey: ["recipe-images"] });
+      queryClient.removeQueries({ queryKey: ["recipes", "videos"] });
+      queryClient.removeQueries({ queryKey: ["filters", "presets"] });
+      queryClient.removeQueries({ queryKey: ["weather", "suggestions"] });
+      
+      // Invalidate business insights to refetch with new user data
       queryClient.invalidateQueries({ queryKey: ["business", "insights"] });
       
       // Update previous state
@@ -138,6 +153,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     // Reset PostHog user
     resetUser();
+    
+    // Clear ALL user-specific cache immediately to prevent old data showing for next user
+    queryClient.removeQueries({ queryKey: ["recipes", "favourites"] });
+    queryClient.removeQueries({ queryKey: ["collections"] });
+    queryClient.removeQueries({ queryKey: ["collection"] });
+    queryClient.removeQueries({ queryKey: ["shopping-lists"] });
+    queryClient.removeQueries({ queryKey: ["meal-plan"] });
+    queryClient.removeQueries({ queryKey: ["recipe-note"] });
+    queryClient.removeQueries({ queryKey: ["recipe-images"] });
+    queryClient.removeQueries({ queryKey: ["recipes", "videos"] });
+    queryClient.removeQueries({ queryKey: ["filters", "presets"] });
+    queryClient.removeQueries({ queryKey: ["weather", "suggestions"] });
+    
     // Sign out without redirect for smooth UI transition
     await nextAuthSignOut({ redirect: false });
     // Invalidate business insights to update stats (user count may change)
