@@ -504,7 +504,7 @@ export const searchRecipes = async (
     }
   }
 
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
       response,
@@ -528,7 +528,7 @@ export const getRecipeSummary = async (recipeId: string): Promise<RecipeSummary>
   
   // fetch() handles relative paths automatically using current origin
   // If API_URL is set, apiPath is already a full URL
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -575,7 +575,7 @@ export const getRecipeInformation = async (
     `/api/recipes/${recipeId}/information${queryString ? `?${queryString}` : ""}`
   );
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -604,7 +604,7 @@ export const getSimilarRecipes = async (
     `/api/recipes/${recipeId}/similar?number=${Math.max(1, Math.min(100, number))}`
   );
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -638,7 +638,7 @@ export const autocompleteRecipes = async (
     `/api/recipes/autocomplete?query=${encodeURIComponent(query)}&number=${Math.max(1, Math.min(25, number))}`
   );
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -671,7 +671,7 @@ export const aiSearchRecipes = async (
     `/api/ai/search?query=${encodeURIComponent(query.trim())}`
   );
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -711,7 +711,7 @@ export const getRecipeRecommendations = async (options: {
 
   const apiPath = getApiUrl(`/api/ai/recommendations?${params.toString()}`);
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -737,7 +737,7 @@ export const getRecipeAnalysis = async (
 ): Promise<RecipeAnalysisResponse> => {
   const apiPath = getApiUrl(`/api/ai/analysis?recipeId=${encodeURIComponent(recipeId)}`);
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -772,7 +772,7 @@ export const getRecipeModification = async (
     params.append("diet", diet);
   }
   const apiPath = getApiUrl(`/api/ai/modifications?${params.toString()}`);
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -800,7 +800,7 @@ export const getDishPairingForWine = async (
     `/api/food/wine/dishes?wine=${encodeURIComponent(wine)}`
   );
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -834,7 +834,7 @@ export const getWinePairing = async (
     apiPath += `&maxPrice=${encodeURIComponent(maxPrice)}`;
   }
   
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, { cache: "no-store" });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -1719,6 +1719,7 @@ export const getWeatherSuggestions = async (location: {
     headers: {
       "Content-Type": "application/json",
     },
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -2020,6 +2021,7 @@ export const getBlogPosts = async (options?: {
     headers: {
       "Content-Type": "application/json",
     },
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -2047,6 +2049,7 @@ export const getBlogPost = async (slug: string): Promise<BlogPost> => {
     headers: {
       "Content-Type": "application/json",
     },
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
