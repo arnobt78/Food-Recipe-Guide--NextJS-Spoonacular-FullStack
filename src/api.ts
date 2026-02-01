@@ -860,6 +860,7 @@ export const getFavouriteRecipes = async (): Promise<FavouriteRecipesResponse> =
   // If API_URL is set, apiPath is already a full URL
   const response = await fetch(apiPath, {
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -974,6 +975,7 @@ export const getCollections = async (): Promise<RecipeCollection[]> => {
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1039,6 +1041,7 @@ export const getCollection = async (
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1072,6 +1075,7 @@ export const getCollectionRecipes = async (
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1241,6 +1245,7 @@ export const getRecipeNote = async (
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1338,6 +1343,7 @@ export const getMealPlan = async (weekStart: string): Promise<MealPlan> => {
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1421,6 +1427,7 @@ export const getShoppingLists = async (): Promise<ShoppingList[]> => {
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1581,6 +1588,7 @@ export const getRecipeImages = async (recipeId: number): Promise<RecipeImage[]> 
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1735,6 +1743,7 @@ export const getFilterPresets = async (): Promise<FilterPreset[]> => {
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1763,6 +1772,7 @@ export const getFilterPreset = async (presetId: string): Promise<FilterPreset> =
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -1896,6 +1906,7 @@ export const getRecipeVideos = async (recipeId: number): Promise<RecipeVideo[]> 
   const response = await fetch(apiPath, {
     method: "GET",
     headers: await getAuthHeaders(),
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
@@ -2065,6 +2076,7 @@ export const getBusinessInsights = async (): Promise<BusinessInsightsResponse> =
     headers: {
       "Content-Type": "application/json",
     },
+    cache: "no-store", // Prevent browser caching
   });
 
   if (!response.ok) {
