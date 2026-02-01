@@ -4,13 +4,13 @@
  * Features:
  * - Fetches weather data from OpenWeather API
  * - Gets AI-powered recipe suggestions based on weather
- * - Caches weather data (1 hour stale time)
+ * - Short stale time to avoid caching API limit errors
  * - Centralized error handling with toast notifications
  *
  * Following REACT_QUERY_SETUP_GUIDE.md patterns:
- * - staleTime: 1 hour (weather doesn't change frequently)
- * - refetchOnMount: true = Refetch ONLY when data is stale
- * - Result: Cache for 1 hour, then refetch once
+ * - staleTime: 5 minutes (short to avoid caching API limit errors)
+ * - refetchOnMount: "always" = Always refetch fresh data
+ * - refetchOnWindowFocus: true = Refetch when user returns to tab
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -42,8 +42,10 @@ export function useWeatherSuggestions(
       return api.getWeatherSuggestions(location);
     },
     enabled: enabled && location !== null,
-    staleTime: 60 * 60 * 1000, // 1 hour - weather doesn't change frequently
-    refetchOnMount: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes - short to avoid caching API limit errors
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: "always", // Always refetch on mount
+    refetchOnWindowFocus: true, // Refetch when window regains focus
     retry: 2,
     retryDelay: 1000,
   });
