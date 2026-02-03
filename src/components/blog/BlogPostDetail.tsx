@@ -28,18 +28,21 @@ import { formatDistanceToNow } from "date-fns";
 interface BlogPostDetailProps {
   slug: string;
   className?: string;
+  hideHeader?: boolean; // Hide the header with back button when displayed in hero section
 }
 
 /**
  * Blog Post Detail Component (Memoized for performance)
  */
-const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
+const BlogPostDetail = memo(({ slug, className = "", hideHeader = false }: BlogPostDetailProps) => {
   const router = useRouter();
   const { data: post, isLoading, error, refetch } = useBlogPost(slug, !!slug);
 
   if (isLoading) {
     return (
-      <Card className={`group rounded-[28px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] ${className}`}>
+      <Card
+        className={`group rounded-[28px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] ${className}`}
+      >
         <CardHeader>
           <Skeleton className="h-10 w-3/4 mb-4" />
           <Skeleton className="h-6 w-1/2" />
@@ -56,7 +59,9 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
 
   if (error) {
     return (
-      <Card className={`group rounded-[28px] border border-red-400/30 bg-gradient-to-br from-red-500/25 via-red-500/10 to-red-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(239,68,68,0.35)] ${className}`}>
+      <Card
+        className={`group rounded-[28px] border border-red-400/30 bg-gradient-to-br from-red-500/25 via-red-500/10 to-red-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(239,68,68,0.35)] ${className}`}
+      >
         <CardContent className="p-6 text-center">
           <p className="text-red-400 mb-4">{error.message}</p>
           <div className="flex gap-3 justify-center">
@@ -94,25 +99,33 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
   const timeAgo = formatDistanceToNow(publishedDate, { addSuffix: true });
 
   return (
-    <Card className={`group rounded-[28px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] overflow-hidden ${className}`}>
-      {/* Header with Back Button */}
+    <Card
+      className={`group rounded-[28px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] overflow-hidden ${className}`}
+    >
+      {/* Header with Back Button - Always show */}
       <CardHeader className="relative bg-gradient-to-r from-teal-900/50 to-cyan-900/50 border-b border-teal-500/30 rounded-t-[28px]">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => router.push("/blog")}
-            className="hover:bg-teal-500/20 text-gray-400 hover:text-teal-400"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 hover:text-white transition-all"
             aria-label="Back to blog"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-sm font-medium">Back to Blog</span>
           </Button>
+          {/* Show category only when not hidden (not using hero for metadata) */}
+          {!hideHeader && post.category && (
+            <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/30">
+              {post.category}
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="p-4 sm:p-6 md:p-8">
-        {/* Category Badge */}
-        {post.category && (
+        {/* Category Badge - Only show if header metadata is not hidden */}
+        {!hideHeader && post.category && (
           <div className="mb-4">
             <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/30">
               {post.category}
@@ -120,38 +133,44 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
           </div>
         )}
 
-        {/* Title */}
-        <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-6">
-          {post.title}
-        </CardTitle>
+        {/* Title - Only show if not using hero for title */}
+        {!hideHeader && (
+          <CardTitle className="text-2xl sm:text-3xl font-bold text-white mb-6">
+            {post.title}
+          </CardTitle>
+        )}
 
-        {/* Metadata */}
-        <div className="flex flex-wrap items-center gap-4 mb-6 pb-6 border-b border-slate-700/50">
-          {post.author && (
-            <div className="flex items-center gap-3">
-              {post.author.avatar ? (
-                <Image
-                  src={post.author.avatar}
-                  alt={post.author.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
-                  <User className="h-5 w-5 text-teal-300" />
+        {/* Metadata - Only show if not using hero */}
+        {!hideHeader && (
+          <div className="flex flex-wrap items-center gap-4 mb-6 pb-6 border-b border-white/30">
+            {post.author && (
+              <div className="flex items-center gap-3">
+                {post.author.avatar ? (
+                  <Image
+                    src={post.author.avatar}
+                    alt={post.author.name}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
+                    <User className="h-5 w-5 text-teal-300" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-white">
+                    {post.author.name}
+                  </p>
+                  <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {timeAgo}
+                  </p>
                 </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-white">{post.author.name}</p>
-                <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {timeAgo}
-                </p>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Featured Image */}
         {post.featuredImage && (

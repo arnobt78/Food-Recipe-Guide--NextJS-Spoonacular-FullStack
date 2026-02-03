@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console
     console.error("ErrorBoundary caught an error:", error, errorInfo);
-    
+
     // Send error to Sentry for tracking
     Sentry.captureException(error, {
       contexts: {
@@ -62,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
         errorBoundary: true,
       },
     });
-    
+
     this.setState({
       error,
       errorInfo,
@@ -101,14 +101,17 @@ export class ErrorBoundary extends Component<Props, State> {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-6 w-6 text-red-400" />
-                <CardTitle className="text-red-400">Something went wrong</CardTitle>
+                <CardTitle className="text-red-400">
+                  Something went wrong
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-300">
-                An unexpected error occurred. Please try reloading the page or contact support if the problem persists.
+                An unexpected error occurred. Please try reloading the page or
+                contact support if the problem persists.
               </p>
-              
+
               {this.state.error && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
                   <p className="text-red-400 font-mono text-sm break-all">
@@ -117,22 +120,20 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
               )}
 
-              {process.env.NODE_ENV === "development" && this.state.errorInfo && (
-                <details className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-                  <summary className="text-gray-400 cursor-pointer mb-2">
-                    Error Details (Development Only)
-                  </summary>
-                  <pre className="text-xs text-gray-500 overflow-auto max-h-64">
-                    {this.state.errorInfo.componentStack}
-                  </pre>
-                </details>
-              )}
+              {process.env.NODE_ENV === "development" &&
+                this.state.errorInfo && (
+                  <details className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <summary className="text-gray-400 cursor-pointer mb-2">
+                      Error Details (Development Only)
+                    </summary>
+                    <pre className="text-xs text-gray-400 overflow-auto max-h-64">
+                      {this.state.errorInfo.componentStack}
+                    </pre>
+                  </details>
+                )}
 
               <div className="flex gap-3">
-                <Button
-                  onClick={this.handleReload}
-                  className="glow-button"
-                >
+                <Button onClick={this.handleReload} className="glow-button">
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reload Page
                 </Button>
@@ -155,4 +156,3 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
-

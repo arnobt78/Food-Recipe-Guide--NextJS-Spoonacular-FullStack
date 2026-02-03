@@ -116,8 +116,8 @@ const IngredientMatchDetails = memo(
                     {/* Aisle Information */}
                     {ingredient.aisle && (
                       <div className="flex items-center gap-1 mt-1">
-                        <ShoppingCart className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-500">
+                        <ShoppingCart className="h-3 w-3 text-gray-400" />
+                        <span className="text-xs text-gray-400">
                           Aisle: {ingredient.aisle}
                         </span>
                       </div>
@@ -201,8 +201,8 @@ const IngredientMatchDetails = memo(
                     {/* Aisle Information */}
                     {ingredient.aisle && (
                       <div className="flex items-center gap-1 mt-1">
-                        <ShoppingCart className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-500">
+                        <ShoppingCart className="h-3 w-3 text-gray-400" />
+                        <span className="text-xs text-gray-400">
                           Aisle: {ingredient.aisle}
                         </span>
                       </div>
@@ -281,8 +281,8 @@ const IngredientMatchDetails = memo(
                     {/* Aisle Information */}
                     {ingredient.aisle && (
                       <div className="flex items-center gap-1 mt-1">
-                        <ShoppingCart className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-500">
+                        <ShoppingCart className="h-3 w-3 text-gray-400" />
+                        <span className="text-xs text-gray-400">
                           Aisle: {ingredient.aisle}
                         </span>
                       </div>

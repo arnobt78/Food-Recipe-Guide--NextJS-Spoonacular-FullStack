@@ -39,7 +39,11 @@ interface HeroSearchSectionProps {
   isSearching: boolean;
   className?: string;
   // Weather data callbacks - pass weather data to parent for display in tab content
-  onWeatherDataChange?: (data: WeatherSuggestionsResponse | null, isLoading: boolean, error: Error | null) => void;
+  onWeatherDataChange?: (
+    data: WeatherSuggestionsResponse | null,
+    isLoading: boolean,
+    error: Error | null
+  ) => void;
   onSearchModeChange?: (mode: SearchMode) => void;
 }
 
@@ -64,13 +68,16 @@ const HeroSearchSection = memo(
     const [activeMode, setActiveMode] = useState<SearchMode>("search");
 
     // Handle mode change with smooth transition
-    const handleModeChange = useCallback((mode: SearchMode) => {
-      setActiveMode(mode);
-      // Notify parent of mode change
-      if (onSearchModeChange) {
-        onSearchModeChange(mode);
-      }
-    }, [onSearchModeChange]);
+    const handleModeChange = useCallback(
+      (mode: SearchMode) => {
+        setActiveMode(mode);
+        // Notify parent of mode change
+        if (onSearchModeChange) {
+          onSearchModeChange(mode);
+        }
+      },
+      [onSearchModeChange]
+    );
 
     return (
       <motion.div
@@ -147,7 +154,7 @@ const HeroSearchSection = memo(
                       value={searchTerm}
                       onChange={(e) => onSearchTermChange(e.target.value)}
                       placeholder="Enter ingredients, dish name, or describe what you want..."
-                      className="flex-1 bg-slate-900/30 backdrop-blur-sm border-purple-500/30 text-white text-base placeholder:text-gray-500 rounded-xl focus:border-purple-400 focus:ring-purple-400/20"
+                      className="flex-1 bg-slate-900/30 backdrop-blur-sm border-purple-500/30 text-white text-base placeholder:text-gray-400 rounded-xl focus:border-purple-400 focus:ring-purple-400/20"
                     />
                     <Button
                       type="submit"
@@ -173,8 +180,8 @@ const HeroSearchSection = memo(
               transition={{ duration: 0.3 }}
             >
               {/* Weather Widget only - recipes are displayed in tab content area */}
-              <WeatherWidget 
-                className="w-full mx-auto" 
+              <WeatherWidget
+                className="w-full mx-auto"
                 onWeatherDataChange={onWeatherDataChange}
               />
             </motion.div>

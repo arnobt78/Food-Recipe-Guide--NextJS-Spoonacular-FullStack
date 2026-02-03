@@ -122,7 +122,7 @@ export function LoginDialog({
         }
       }
     },
-    [setValue, reset],
+    [setValue, reset]
   );
 
   /**
@@ -161,7 +161,7 @@ export function LoginDialog({
         setIsLoading(false);
       }
     },
-    [router, onOpenChange],
+    [router, onOpenChange]
   );
 
   /**
@@ -242,7 +242,7 @@ export function LoginDialog({
                 )}
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               This helper auto-fills the form. User must exist in database.
             </p>
           </div>
@@ -256,7 +256,7 @@ export function LoginDialog({
               id="email"
               type="email"
               placeholder="you@example.com"
-              className="border-emerald-500/50 bg-slate-800/50 text-white placeholder:text-gray-500 focus:ring-emerald-500/50 focus:border-emerald-500 rounded-lg"
+              className="border-emerald-500/50 bg-slate-800/50 text-white placeholder:text-gray-400 focus:ring-emerald-500/50 focus:border-emerald-500 rounded-lg"
               {...register("email")}
             />
             {errors.email && (
@@ -273,7 +273,7 @@ export function LoginDialog({
               id="password"
               type="password"
               placeholder="Enter your password"
-              className="border-emerald-500/50 bg-slate-800/50 text-white placeholder:text-gray-500 focus:ring-emerald-500/50 focus:border-emerald-500 rounded-lg"
+              className="border-emerald-500/50 bg-slate-800/50 text-white placeholder:text-gray-400 focus:ring-emerald-500/50 focus:border-emerald-500 rounded-lg"
               {...register("password")}
             />
             {errors.password && (

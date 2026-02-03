@@ -41,6 +41,8 @@ import {
   ShoppingCart,
   BarChart3,
   Home,
+  Activity,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useRecipeContext } from "../../context/RecipeContext";
@@ -129,7 +131,7 @@ const Navbar = memo(() => {
           <span className="text-2xl">👋</span>
           <div>
             <p className="font-semibold">Welcome back, {firstName}!</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-400">
               Let&apos;s cook something amazing together!
             </p>
           </div>
@@ -147,7 +149,7 @@ const Navbar = memo(() => {
           <span className="text-2xl">👋</span>
           <div>
             <p className="font-semibold">Goodbye, {firstName}!</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-400">
               We&apos;ll cook together again soon!
             </p>
           </div>
@@ -275,6 +277,22 @@ const Navbar = memo(() => {
             >
               <BarChart3 className="h-4 w-4" />
               <span>Insights</span>
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/api-status")}
+              className="hidden sm:flex items-center gap-2 text-gray-300 hover:text-white hover:bg-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/20 transition-all duration-300"
+            >
+              <Activity className="h-4 w-4" />
+              <span>API Status</span>
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/api-docs")}
+              className="hidden sm:flex items-center gap-2 text-gray-300 hover:text-white hover:bg-violet-500/20 hover:shadow-md hover:shadow-violet-500/20 transition-all duration-300"
+            >
+              <FileText className="h-4 w-4" />
+              <span>API Docs</span>
             </Button>
             {/* Auth Section - Three states (SSR-safe):
                 1. Authenticated → Profile dropdown

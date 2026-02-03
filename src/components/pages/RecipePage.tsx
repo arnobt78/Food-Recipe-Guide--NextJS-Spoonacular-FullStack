@@ -5,7 +5,7 @@
  *
  * Full-page view for displaying individual recipe details.
  * Client component with all providers and interactive features.
- * 
+ *
  * Features:
  * - Uses Next.js navigation
  * - Browser default scroll (no fixed heights)
@@ -673,7 +673,7 @@ const RecipePageContent = memo(() => {
                                       ""
                                     )}
                                 </a>
-                                <p className="text-xs text-gray-500 mb-2">
+                                <p className="text-xs text-gray-400 mb-2">
                                   This is the original recipe source where this
                                   recipe was first published.
                                 </p>
@@ -1148,7 +1148,7 @@ const RecipePageContent = memo(() => {
                                                 {ingredient.originalName &&
                                                   ingredient.originalName !==
                                                     ingredient.name && (
-                                                    <p className="text-xs text-gray-500 mt-0.5">
+                                                    <p className="text-xs text-gray-400 mt-0.5">
                                                       ({ingredient.originalName}
                                                       )
                                                     </p>
@@ -1198,7 +1198,7 @@ const RecipePageContent = memo(() => {
                                                           .unitLong !==
                                                           ingredient.measures.us
                                                             .unitShort && (
-                                                          <span className="text-gray-500 text-xs">
+                                                          <span className="text-gray-400 text-xs">
                                                             {
                                                               ingredient
                                                                 .measures.us
@@ -1229,7 +1229,7 @@ const RecipePageContent = memo(() => {
                                                           ingredient.measures
                                                             .metric
                                                             .unitShort && (
-                                                          <span className="text-gray-500 text-xs">
+                                                          <span className="text-gray-400 text-xs">
                                                             {
                                                               ingredient
                                                                 .measures.metric
@@ -1979,7 +1979,7 @@ RecipePageContent.displayName = "RecipePageContent";
 /**
  * Recipe Page Client Component
  * Contains all client-side logic and providers
- * 
+ *
  * Following DEVELOPMENT_RULES.md: Server/Client component separation
  */
 export default function RecipePageClient() {

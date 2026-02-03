@@ -418,6 +418,57 @@ export async function GET(
   const searchParams = request.nextUrl.searchParams;
 
   try {
+    // Route: /api/status (GET) - Real-time API status for all endpoints
+    if (path[0] === "status" && path.length === 1) {
+      const base = request.nextUrl.origin;
+      const endpoints: Array<{ path: string; method: string; description: string }> = [
+        { path: "/api/recipes/search?searchTerm=test&page=1", method: "GET", description: "Recipe Search" },
+        { path: "/api/recipes/autocomplete?query=test", method: "GET", description: "Recipe Autocomplete" },
+        { path: "/api/recipes/716429/information", method: "GET", description: "Recipe Information" },
+        { path: "/api/recipes/716429/summary", method: "GET", description: "Recipe Summary" },
+        { path: "/api/recipes/716429/similar", method: "GET", description: "Similar Recipes" },
+        { path: "/api/food/wine/dishes?wine=merlot", method: "GET", description: "Wine Dishes" },
+        { path: "/api/food/wine/pairing?food=steak", method: "GET", description: "Wine Pairing" },
+        { path: "/api/cms/blog", method: "GET", description: "Blog CMS" },
+        { path: "/api/business-insights", method: "GET", description: "Business Insights" },
+      ];
+      const results = await Promise.all(
+        endpoints.map(async (ep) => {
+          const start = Date.now();
+          try {
+            const res = await fetch(`${base}${ep.path}`, {
+              method: ep.method,
+              headers: { Cookie: request.headers.get("cookie") || "" },
+            });
+            const latency = Date.now() - start;
+            const ok = res.ok || res.status === 401;
+            return {
+              path: ep.path,
+              method: ep.method,
+              description: ep.description,
+              status: res.status,
+              ok,
+              latency,
+            };
+          } catch (e) {
+            return {
+              path: ep.path,
+              method: ep.method,
+              description: ep.description,
+              status: 0,
+              ok: false,
+              latency: Date.now() - start,
+              error: e instanceof Error ? e.message : String(e),
+            };
+          }
+        })
+      );
+      return jsonResponse({
+        endpoints: results,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // Route: /api (root) - Health check and info
     if (path.length === 0) {
       const html = `

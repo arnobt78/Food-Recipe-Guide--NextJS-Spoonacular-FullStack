@@ -69,7 +69,7 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
               priority={shouldLoadEagerly}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            
+
             {/* Category Badge */}
             {post.category && (
               <div className="absolute top-3 left-3">
@@ -105,7 +105,7 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
           )}
 
           {/* Metadata */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+          <div className="flex items-center justify-between pt-4 border-t border-white/30">
             <div className="flex items-center gap-3">
               {post.author?.avatar ? (
                 <Image
@@ -124,7 +124,7 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
                 <span className="text-xs sm:text-sm text-white font-medium">
                   {post.author?.name || "Unknown"}
                 </span>
-                <span className="text-xs text-gray-500 flex items-center gap-1">
+                <span className="text-xs text-gray-400 flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {timeAgo}
                 </span>

@@ -111,11 +111,12 @@ const Footer = memo(() => {
                   <span className="text-lg font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
                     FlavorVerse
                   </span>
-                  <span className="text-gray-500">|</span>
+                  <span className="text-gray-400">|</span>
                   <span className="text-sm text-gray-400">{currentYear}</span>
                 </div>
-                <span className="text-xs text-gray-500 mt-1">
-                  Discover, cook, and savor amazing recipes from around the world.
+                <span className="text-xs text-gray-400 mt-1">
+                  Discover, cook, and savor amazing recipes from around the
+                  world.
                 </span>
               </div>
             </div>
@@ -196,7 +197,7 @@ const Footer = memo(() => {
                 </div>
 
                 {/* Closing note */}
-                <p className="text-center text-xs text-gray-500">
+                <p className="text-center text-xs text-gray-400">
                   We&apos;re cooking up something special. Stay tuned!
                 </p>
               </motion.div>

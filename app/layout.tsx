@@ -14,6 +14,10 @@ import "@/global.css";
  * Metadata for the application
  */
 export const metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  ),
   title: "Recipe App | Discover & Save Your Favourite Recipes",
   description:
     "A modern full-stack recipe app to search, view, and save your favourite recipes. Built with React, Node.js, PostgreSQL, and Spoonacular API.",

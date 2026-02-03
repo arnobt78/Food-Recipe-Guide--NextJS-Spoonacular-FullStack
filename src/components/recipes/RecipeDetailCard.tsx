@@ -624,7 +624,7 @@ const RecipeDetailCard = memo(
                                       ""
                                     )}
                                 </a>
-                                <p className="text-xs text-gray-500 mb-2">
+                                <p className="text-xs text-gray-400 mb-2">
                                   This is the original recipe source where this
                                   recipe was first published.
                                 </p>
@@ -1071,7 +1071,7 @@ const RecipeDetailCard = memo(
                                             {ingredient.originalName &&
                                               ingredient.originalName !==
                                                 ingredient.name && (
-                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                <p className="text-xs text-gray-400 mt-0.5">
                                                   ({ingredient.originalName})
                                                 </p>
                                               )}
@@ -1498,7 +1498,7 @@ const RecipeDetailCard = memo(
                                   ? "In Favourites"
                                   : "Not in Favourites"}
                               </Badge>
-                              <p className="text-xs text-gray-500 mt-2">
+                              <p className="text-xs text-gray-400 mt-2">
                                 {isFavourite
                                   ? "This recipe is saved in your favourites"
                                   : "Click the heart icon to add this recipe to your favourites"}
