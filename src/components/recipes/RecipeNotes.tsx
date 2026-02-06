@@ -13,7 +13,6 @@
  */
 
 import { memo, useState, useCallback, useEffect } from "react";
-import Image from "next/image";
 import {
   useRecipeNote,
   useSaveRecipeNote,
@@ -24,7 +23,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import { Textarea } from "../ui/textarea";
-import { Star, Save, Trash2, Edit2, X, Plus } from "lucide-react";
+import { Star, Save, Trash2, Edit2, X, Plus, StickyNote } from "lucide-react";
 import { Recipe } from "../../types";
 import SkeletonRecipeDetail from "../skeletons/SkeletonRecipeDetail";
 import ConfirmationDialog from "../common/ConfirmationDialog";
@@ -83,7 +82,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
         onSuccess: () => {
           setIsEditing(false);
         },
-      }
+      },
     );
   }, [recipe.id, title, content, rating, tags, saveNote]);
 
@@ -110,7 +109,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
     (tagToRemove: string) => {
       setTags(tags.filter((tag) => tag !== tagToRemove));
     },
-    [tags]
+    [tags],
   );
 
   if (isLoading) {
@@ -122,13 +121,9 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
       <CardContent className="p-4 sm:p-6 bg-transparent">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Image
-              src="/food.svg"
-              alt="Notes"
-              width={24}
-              height={24}
-              className="w-6 h-6"
-            />
+            <div className="p-3 bg-blue-500/20 rounded-lg">
+              <StickyNote className="w-6 h-6 text-blue-400" />
+            </div>
             <h3 className="text-lg sm:text-xl font-semibold text-white">
               My Notes
             </h3>
@@ -298,7 +293,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
                       <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                         Note Title
                       </p>
-                      <p className="mt-3 text-3xl font-semibold text-white">
+                      <p className="mt-3 text-2xl font-semibold text-white">
                         {note.title}
                       </p>
                     </div>

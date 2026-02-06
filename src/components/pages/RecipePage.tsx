@@ -89,22 +89,22 @@ import { RecipeProvider } from "@/context/RecipeContext";
 // Code splitting: Lazy load sub-components that are conditionally rendered
 const RecipeNotes = lazy(() => import("@/components/recipes/RecipeNotes"));
 const RecipeImageGallery = lazy(
-  () => import("@/components/recipes/RecipeImageGallery")
+  () => import("@/components/recipes/RecipeImageGallery"),
 );
 const RecipeVideoPlayer = lazy(
-  () => import("@/components/videos/RecipeVideoPlayer")
+  () => import("@/components/videos/RecipeVideoPlayer"),
 );
 const AddToCollectionDialog = lazy(
-  () => import("@/components/collections/AddToCollectionDialog")
+  () => import("@/components/collections/AddToCollectionDialog"),
 );
 const ShareRecipeDialog = lazy(
-  () => import("@/components/recipes/ShareRecipeDialog")
+  () => import("@/components/recipes/ShareRecipeDialog"),
 );
 const RecipeAnalysis = lazy(
-  () => import("@/components/analysis/RecipeAnalysis")
+  () => import("@/components/analysis/RecipeAnalysis"),
 );
 const RecipeModifications = lazy(
-  () => import("@/components/recipes/RecipeModifications")
+  () => import("@/components/recipes/RecipeModifications"),
 );
 
 /**
@@ -134,8 +134,8 @@ const RecipePageContent = memo(() => {
     (currentTab === "modifications"
       ? "scale"
       : currentTab === "details"
-      ? "ingredients"
-      : "");
+        ? "ingredients"
+        : "");
 
   // Handle tab change with query params sync
   const handleTabChange = useCallback(
@@ -156,7 +156,7 @@ const RecipePageContent = memo(() => {
       }
       router.replace(`/recipe/${id}?${newSearchParams.toString()}`);
     },
-    [searchParams, router, id]
+    [searchParams, router, id],
   );
 
   // Handle sub-tab change with query params sync
@@ -168,7 +168,7 @@ const RecipePageContent = memo(() => {
       newSearchParams.set("subTab", value);
       router.replace(`/recipe/${id}?${newSearchParams.toString()}`);
     },
-    [searchParams, router, id]
+    [searchParams, router, id],
   );
 
   // Fetch recipe data
@@ -185,7 +185,7 @@ const RecipePageContent = memo(() => {
       addWinePairing: true,
       addTasteData: true,
     },
-    !!id
+    !!id,
   );
 
   // Use similar recipes endpoint
@@ -240,30 +240,30 @@ const RecipePageContent = memo(() => {
   // Memoized computed values
   const capitalizedTitle = useMemo(
     () => capitalizeWords(recipeInfo?.title || recipeSummary?.title || ""),
-    [recipeInfo?.title, recipeSummary?.title]
+    [recipeInfo?.title, recipeSummary?.title],
   );
 
   // Use summary from recipeInfo if available, otherwise fallback to recipeSummary
   const summaryText = useMemo(
     () => recipeInfo?.summary || recipeSummary?.summary || "",
-    [recipeInfo?.summary, recipeSummary?.summary]
+    [recipeInfo?.summary, recipeSummary?.summary],
   );
 
   // Remove similar recipes text from summary since we display them separately
   const cleanedSummary = useMemo(
     () => removeSimilarRecipesFromSummary(summaryText),
-    [summaryText]
+    [summaryText],
   );
 
   const summaryWithTargetBlank = useMemo(
     () => addTargetBlankToLinks(cleanedSummary),
-    [cleanedSummary]
+    [cleanedSummary],
   );
 
   // Get source URL directly from API
   const sourceUrl = useMemo(
     () => recipeInfo?.sourceUrl || null,
-    [recipeInfo?.sourceUrl]
+    [recipeInfo?.sourceUrl],
   );
 
   // Extract key information from summary HTML for badges
@@ -314,7 +314,7 @@ const RecipePageContent = memo(() => {
         "🍳 Hey there, food explorer! 👋 To save your favourite recipes, please login first. It's quick and easy! Just click the Login button above and let's get cooking! 🚀",
         {
           duration: 5000,
-        }
+        },
       );
       return;
     }
@@ -400,9 +400,11 @@ const RecipePageContent = memo(() => {
                 className="hover:bg-green-500/20 text-gray-400 hover:text-green-400"
                 aria-label="Go back"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <div className="p-3 bg-green-500/20 rounded-lg">
+                  <ArrowLeft className="h-6 w-6 text-green-400" />
+                </div>
               </Button>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold gradient-text flex-1 truncate">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white flex-1 truncate">
                 {capitalizedTitle || "Recipe Details"}
               </h1>
               <div className="flex items-center gap-2">
@@ -640,7 +642,7 @@ const RecipePageContent = memo(() => {
                                   <p className="mt-3 text-3xl font-semibold text-white">
                                     {recipeInfo?.spoonacularScore
                                       ? `${Math.round(
-                                          recipeInfo.spoonacularScore
+                                          recipeInfo.spoonacularScore,
                                         )}%`
                                       : extractSummaryInfo?.score || "N/A"}
                                   </p>
@@ -670,7 +672,7 @@ const RecipePageContent = memo(() => {
                                   {recipeInfo?.sourceName ||
                                     new URL(sourceUrl).hostname.replace(
                                       "www.",
-                                      ""
+                                      "",
                                     )}
                                 </a>
                                 <p className="text-xs text-gray-400 mb-2">
@@ -860,7 +862,7 @@ const RecipePageContent = memo(() => {
                                             >
                                               {cuisine}
                                             </Badge>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     </div>
@@ -880,7 +882,7 @@ const RecipePageContent = memo(() => {
                                             >
                                               {dishType}
                                             </Badge>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     </div>
@@ -1062,7 +1064,7 @@ const RecipePageContent = memo(() => {
                                           >
                                             {occasion}
                                           </Badge>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   </div>
@@ -1116,7 +1118,7 @@ const RecipePageContent = memo(() => {
                                             <div className="relative flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-orange-500/20">
                                               <Image
                                                 src={getIngredientImageUrl(
-                                                  ingredient.image
+                                                  ingredient.image,
                                                 )}
                                                 alt={ingredient.name}
                                                 fill
@@ -1215,7 +1217,8 @@ const RecipePageContent = memo(() => {
                                                         Metric:{" "}
                                                         {Math.round(
                                                           ingredient.measures
-                                                            .metric.amount * 100
+                                                            .metric.amount *
+                                                            100,
                                                         ) / 100}{" "}
                                                         {
                                                           ingredient.measures
@@ -1255,7 +1258,7 @@ const RecipePageContent = memo(() => {
                                                         >
                                                           {meta}
                                                         </Badge>
-                                                      )
+                                                      ),
                                                     )}
                                                   </div>
                                                 )}
@@ -1272,7 +1275,7 @@ const RecipePageContent = memo(() => {
                                             </div>
                                           </div>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 </div>
@@ -1343,7 +1346,7 @@ const RecipePageContent = memo(() => {
                                                                   <div className="relative w-6 h-6 rounded overflow-hidden">
                                                                     <Image
                                                                       src={getIngredientImageUrl(
-                                                                        ing.image
+                                                                        ing.image,
                                                                       )}
                                                                       alt={
                                                                         ing.name
@@ -1355,7 +1358,7 @@ const RecipePageContent = memo(() => {
                                                                         true
                                                                       }
                                                                       onError={(
-                                                                        e
+                                                                        e,
                                                                       ) => {
                                                                         // Hide image on error (404 from Spoonacular)
                                                                         e.currentTarget.style.display =
@@ -1388,7 +1391,7 @@ const RecipePageContent = memo(() => {
                                                                     )}
                                                                 </Badge>
                                                               </div>
-                                                            )
+                                                            ),
                                                           )}
                                                         </div>
                                                       </div>
@@ -1413,7 +1416,7 @@ const RecipePageContent = memo(() => {
                                                                   <div className="relative w-6 h-6 rounded overflow-hidden">
                                                                     <Image
                                                                       src={getEquipmentImageUrl(
-                                                                        eq.image
+                                                                        eq.image,
                                                                       )}
                                                                       alt={
                                                                         eq.name
@@ -1425,7 +1428,7 @@ const RecipePageContent = memo(() => {
                                                                         true
                                                                       }
                                                                       onError={(
-                                                                        e
+                                                                        e,
                                                                       ) => {
                                                                         // Hide image on error (404 from Spoonacular)
                                                                         e.currentTarget.style.display =
@@ -1458,17 +1461,17 @@ const RecipePageContent = memo(() => {
                                                                     )}
                                                                 </Badge>
                                                               </div>
-                                                            )
+                                                            ),
                                                           )}
                                                         </div>
                                                       </div>
                                                     )}
                                                 </div>
                                               </div>
-                                            )
+                                            ),
                                           )}
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 ) : recipeInfo.instructions ? (
@@ -1513,7 +1516,7 @@ const RecipePageContent = memo(() => {
                                             >
                                               {wine}
                                             </Badge>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     </div>
@@ -1566,7 +1569,7 @@ const RecipePageContent = memo(() => {
                                                   <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
                                                     Rating:{" "}
                                                     {product.averageRating.toFixed(
-                                                      1
+                                                      1,
                                                     )}
                                                     /5
                                                     {product.ratingCount >
@@ -1595,7 +1598,7 @@ const RecipePageContent = memo(() => {
                                                         window.open(
                                                           product.link,
                                                           "_blank",
-                                                          "noopener,noreferrer"
+                                                          "noopener,noreferrer",
                                                         )
                                                       }
                                                     >
@@ -1607,7 +1610,7 @@ const RecipePageContent = memo(() => {
                                               </div>
                                             </div>
                                           </div>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   )}
@@ -1684,7 +1687,8 @@ const RecipePageContent = memo(() => {
                                           <p className="mt-3 text-3xl font-semibold text-white">
                                             {Math.round(
                                               recipeInfo.nutrition
-                                                .caloricBreakdown.percentProtein
+                                                .caloricBreakdown
+                                                .percentProtein,
                                             )}
                                             %
                                           </p>
@@ -1700,7 +1704,7 @@ const RecipePageContent = memo(() => {
                                           <p className="mt-3 text-3xl font-semibold text-white">
                                             {Math.round(
                                               recipeInfo.nutrition
-                                                .caloricBreakdown.percentFat
+                                                .caloricBreakdown.percentFat,
                                             )}
                                             %
                                           </p>
@@ -1716,7 +1720,7 @@ const RecipePageContent = memo(() => {
                                           <p className="mt-3 text-3xl font-semibold text-white">
                                             {Math.round(
                                               recipeInfo.nutrition
-                                                .caloricBreakdown.percentCarbs
+                                                .caloricBreakdown.percentCarbs,
                                             )}
                                             %
                                           </p>
@@ -1739,7 +1743,7 @@ const RecipePageContent = memo(() => {
                                     <p className="text-sm font-semibold text-white">
                                       {Math.round(
                                         recipeInfo.nutrition.weightPerServing
-                                          .amount
+                                          .amount,
                                       )}{" "}
                                       {
                                         recipeInfo.nutrition.weightPerServing
@@ -1771,14 +1775,14 @@ const RecipePageContent = memo(() => {
                                                 </p>
                                                 <p className="mt-3 text-3xl font-semibold text-white">
                                                   {Math.round(
-                                                    nutrient.amount * 100
+                                                    nutrient.amount * 100,
                                                   ) / 100}{" "}
                                                   {nutrient.unit}
                                                   {nutrient.percentOfDailyNeeds && (
                                                     <span className="text-xs text-gray-400 ml-2">
                                                       (
                                                       {Math.round(
-                                                        nutrient.percentOfDailyNeeds
+                                                        nutrient.percentOfDailyNeeds,
                                                       )}
                                                       % DV)
                                                     </span>
@@ -1787,7 +1791,7 @@ const RecipePageContent = memo(() => {
                                               </div>
                                             </div>
                                           </Card>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   </div>
@@ -1820,7 +1824,7 @@ const RecipePageContent = memo(() => {
                                               </div>
                                             </div>
                                           </Card>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   </div>
@@ -1848,14 +1852,14 @@ const RecipePageContent = memo(() => {
                                                 </p>
                                                 <p className="mt-3 text-3xl font-semibold text-white">
                                                   {Math.round(
-                                                    flavonoid.amount * 100
+                                                    flavonoid.amount * 100,
                                                   ) / 100}{" "}
                                                   {flavonoid.unit}
                                                 </p>
                                               </div>
                                             </div>
                                           </Card>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   </div>
@@ -1904,13 +1908,13 @@ const RecipePageContent = memo(() => {
                                           style={{
                                             width: `${Math.min(
                                               100,
-                                              Math.max(0, value)
+                                              Math.max(0, value),
                                             )}%`,
                                           }}
                                         />
                                       </div>
                                     </div>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </div>

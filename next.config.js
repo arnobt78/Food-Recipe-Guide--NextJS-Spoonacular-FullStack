@@ -17,45 +17,50 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   // Image optimization
-      images: {
-        remotePatterns: [
-          {
-            protocol: 'https',
-            hostname: 'img.spoonacular.com',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'spoonacular.com',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'res.cloudinary.com',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'ik.imagekit.io',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: '**.googleusercontent.com',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'lh3.googleusercontent.com',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'images.ctfassets.net',
-            pathname: '/**',
-          },
-        ],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.spoonacular.com",
+        pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "spoonacular.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.ctfassets.net",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "robohash.org",
+        pathname: "/**",
+      },
+    ],
+  },
   // Environment variables that should be available on the client
   env: {
     // These will be available via process.env in both server and client

@@ -82,10 +82,10 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
           onSuccess: () => {
             setUploadDialogOpen(false);
           },
-        }
+        },
       );
     },
-    [recipe.id, selectedImageType, addRecipeImage]
+    [recipe.id, selectedImageType, addRecipeImage],
   );
 
   const handleDelete = useCallback((image: RecipeImage) => {
@@ -102,7 +102,7 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
             setDeleteDialogOpen(false);
             setImageToDelete(null);
           },
-        }
+        },
       );
     }
   }, [imageToDelete, removeRecipeImage]);
@@ -140,8 +140,10 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <CardTitle className="text-white flex items-center gap-2">
-          <Camera className="h-5 w-5 text-white" />
+        <CardTitle className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
+          <div className="p-3 bg-emerald-500/20 rounded-lg">
+            <Camera className="h-6 w-6 text-emerald-400" />
+          </div>
           Recipe Images
         </CardTitle>
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
@@ -186,7 +188,7 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
                           {imageTypeLabels[type]}
                         </Button>
                       );
-                    }
+                    },
                   )}
                 </div>
               </div>
@@ -256,7 +258,7 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
                     </AnimatePresence>
                   </div>
                 </div>
-              )
+              ),
           )}
         </div>
       )}

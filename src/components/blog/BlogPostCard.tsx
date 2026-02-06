@@ -15,7 +15,7 @@ import { memo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BlogPost } from "../../types";
-import { Calendar, User, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -32,6 +32,10 @@ interface BlogPostCardProps {
  */
 const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
   const router = useRouter();
+
+  const fallbackAvatarUrl = `https://robohash.org/${
+    post.author?.name || post.slug || "author"
+  }.png?size=64x64`;
 
   // Optimize loading: First 6 cards load eagerly
   const shouldLoadEagerly = index < 6;
@@ -116,9 +120,13 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center">
-                  <User className="h-4 w-4 text-teal-300" />
-                </div>
+                <Image
+                  src={fallbackAvatarUrl}
+                  alt={post.author?.name || "Author"}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
               )}
               <div className="flex flex-col">
                 <span className="text-xs sm:text-sm text-white font-medium">

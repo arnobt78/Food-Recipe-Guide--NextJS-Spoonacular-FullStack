@@ -135,17 +135,17 @@ const RecipeVideoPlayer = memo(
   ({ recipeId, className = "" }: RecipeVideoPlayerProps) => {
     const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [selectedVideo, setSelectedVideo] = useState<RecipeVideo | null>(
-      null
+      null,
     );
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [videoToDelete, setVideoToDelete] = useState<RecipeVideo | null>(
-      null
+      null,
     );
 
     // Form state
     const [videoUrl, setVideoUrl] = useState("");
     const [videoType, setVideoType] = useState<"youtube" | "vimeo" | "custom">(
-      "youtube"
+      "youtube",
     );
     const [videoTitle, setVideoTitle] = useState("");
     const [videoDescription, setVideoDescription] = useState("");
@@ -195,7 +195,7 @@ const RecipeVideoPlayer = memo(
             setVideoDescription("");
             setVideoType("youtube");
           },
-        }
+        },
       );
     }, [videoUrl, videoType, videoTitle, videoDescription, recipeId, addVideo]);
 
@@ -215,7 +215,7 @@ const RecipeVideoPlayer = memo(
               setDeleteDialogOpen(false);
               setVideoToDelete(null);
             },
-          }
+          },
         );
       }
     }, [videoToDelete, recipeId, removeVideo]);
@@ -247,8 +247,10 @@ const RecipeVideoPlayer = memo(
       <div className={`space-y-6 ${className}`}>
         {/* Header */}
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white flex items-center gap-2">
-            <Video className="h-5 w-5 text-white" />
+          <CardTitle className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
+            <div className="p-3 bg-purple-500/20 rounded-lg">
+              <Video className="h-6 w-6 text-purple-400" />
+            </div>
             Recipe Videos
           </CardTitle>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
@@ -312,8 +314,8 @@ const RecipeVideoPlayer = memo(
                       videoType === "youtube"
                         ? "https://www.youtube.com/watch?v=..."
                         : videoType === "vimeo"
-                        ? "https://vimeo.com/..."
-                        : "https://example.com/video.mp4"
+                          ? "https://vimeo.com/..."
+                          : "https://example.com/video.mp4"
                     }
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
@@ -530,7 +532,7 @@ const RecipeVideoPlayer = memo(
         />
       </div>
     );
-  }
+  },
 );
 
 RecipeVideoPlayer.displayName = "RecipeVideoPlayer";
