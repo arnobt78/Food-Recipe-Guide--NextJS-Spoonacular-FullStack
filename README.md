@@ -8,7 +8,6 @@ A modern full-stack recipe app to search, save, and manage recipes—with favour
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-blue)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.15-2D3748)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-NeonDB-336791)](https://www.postgresql.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind CSS-3.4-38B2AC)](https://tailwindcss.com/)
 [![Spoonacular API](https://img.shields.io/badge/Spoonacular-API-22C55E)](https://spoonacular.com/food-api)
 
 - **Live-Demo:** [https://recipe-smart.vercel.app/](https://recipe-smart.vercel.app/)
