@@ -120,59 +120,63 @@ const StatCard = memo(
         className={`bg-gradient-to-br ${colorClasses[color]} backdrop-blur-md`}
       >
         <CardContent className="p-4 sm:p-5">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-gray-300 mb-1">{title}</p>
-              <p className="text-2xl sm:text-3xl font-bold text-white">
-                {typeof value === "number" ? value.toLocaleString() : value}
-              </p>
-              {subtitle && (
-                <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
-              )}
-              {trend && (
-                <div className="flex items-center gap-1 mt-2">
-                  {trend.isPositive !== false ? (
-                    <TrendingUp className="h-3 w-3 text-green-400" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-400" />
-                  )}
-                  <span
+          <div className="min-w-0">
+            {/* Icon + title inline (home page style) */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className={`p-2.5 sm:p-3 rounded-xl flex-shrink-0 flex items-center ${iconColorClasses[color]}`}
+              >
+                {icon}
+              </div>
+              <p className="text-sm text-gray-300 break-words">{title}</p>
+            </div>
+            {/* Value and rest start from usual left */}
+            <p className="text-2xl sm:text-3xl font-bold text-white mt-2">
+              {typeof value === "number" ? value.toLocaleString() : value}
+            </p>
+            {subtitle && (
+              <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+            )}
+            {trend && (
+              <div className="flex items-center gap-1 mt-2">
+                {trend.isPositive !== false ? (
+                  <TrendingUp className="h-3 w-3 text-green-400" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 text-red-400" />
+                )}
+                <span
+                  className={`text-xs ${
+                    trend.isPositive !== false
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {trend.isPositive !== false ? "+" : ""}
+                  {trend.value}% {trend.label}
+                </span>
+              </div>
+            )}
+            {badges && badges.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {badges.map((badge, idx) => (
+                  <Badge
+                    key={idx}
+                    variant="outline"
                     className={`text-xs ${
-                      trend.isPositive !== false
-                        ? "text-green-400"
-                        : "text-red-400"
+                      badge.color ||
+                      "bg-white/10 border-white/20 text-gray-300"
                     }`}
                   >
-                    {trend.isPositive !== false ? "+" : ""}
-                    {trend.value}% {trend.label}
-                  </span>
-                </div>
-              )}
-              {badges && badges.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {badges.map((badge, idx) => (
-                    <Badge
-                      key={idx}
-                      variant="outline"
-                      className={`text-xs ${
-                        badge.color ||
-                        "bg-white/10 border-white/20 text-gray-300"
-                      }`}
-                    >
-                      {badge.label}: {badge.value}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className={`p-3 rounded-xl ${iconColorClasses[color]}`}>
-              {icon}
-            </div>
+                    {badge.label}: {badge.value}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
     );
-  }
+  },
 );
 StatCard.displayName = "StatCard";
 
@@ -193,7 +197,7 @@ const TrendIndicator = memo(
     if (trend === "declining")
       return <ArrowDownRight className={`${iconSize} text-red-400`} />;
     return <Minus className={`${iconSize} text-gray-400`} />;
-  }
+  },
 );
 TrendIndicator.displayName = "TrendIndicator";
 
@@ -247,7 +251,7 @@ const ActivityItem = memo(
 
     const timeAgo = (date: string) => {
       const seconds = Math.floor(
-        (new Date().getTime() - new Date(date).getTime()) / 1000
+        (new Date().getTime() - new Date(date).getTime()) / 1000,
       );
       if (seconds < 60) return "now";
       if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
@@ -273,7 +277,7 @@ const ActivityItem = memo(
         <span className="text-xs text-gray-400">{timeAgo(timestamp)}</span>
       </div>
     );
-  }
+  },
 );
 ActivityItem.displayName = "ActivityItem";
 
@@ -353,7 +357,7 @@ const PopularRecipeItem = memo(
         </div>
       </div>
     );
-  }
+  },
 );
 PopularRecipeItem.displayName = "PopularRecipeItem";
 
@@ -412,7 +416,7 @@ const TopContributorItem = memo(
         </Badge>
       </div>
     );
-  }
+  },
 );
 TopContributorItem.displayName = "TopContributorItem";
 
@@ -493,20 +497,20 @@ const BusinessInsightsDashboard = memo(() => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">
-            <BarChart3 className="h-7 w-7 text-purple-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">
+      {/* Header - icon + title inline, description and badges below (home page style) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-gradient-to-br from-sky-900/30 to-blue-900/30 border-violet-500/30 backdrop-blur-md rounded-xl p-4 sm:p-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex-shrink-0 flex items-center">
+              <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 text-purple-400" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white break-words">
               Business Insights
             </h1>
-            <p className="text-sm text-gray-400">
-              Real-time platform statistics, AI insights & predictions
-            </p>
           </div>
+          <p className="text-xs sm:text-sm text-gray-400 mt-2">
+            Real-time platform statistics, AI insights & predictions
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge
@@ -552,16 +556,16 @@ const BusinessInsightsDashboard = memo(() => {
               stats.predictions?.healthScore >= 70
                 ? "Excellent"
                 : stats.predictions?.healthScore >= 40
-                ? "Good"
-                : "Needs Attention"
+                  ? "Good"
+                  : "Needs Attention"
             }
             icon={<ThumbsUp className="h-6 w-6" />}
             color={
               stats.predictions?.healthScore >= 70
                 ? "emerald"
                 : stats.predictions?.healthScore >= 40
-                ? "amber"
-                : "red"
+                  ? "amber"
+                  : "red"
             }
           />
           <StatCard

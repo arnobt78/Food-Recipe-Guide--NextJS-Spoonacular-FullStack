@@ -131,19 +131,20 @@ const ApiStatusDashboard = memo(() => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-xl">
-            <Zap className="h-7 w-7 text-emerald-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">
+      {/* Header - icon + title inline, description below (home page style) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-gradient-to-br from-emerald-500/10 to-slate-900/50 border-emerald-500/30 backdrop-blur-md rounded-xl p-4 sm:p-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-3 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-xl flex-shrink-0 flex items-center">
+              <Zap className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white break-words">
               API Status
             </h1>
-            <p className="text-sm text-gray-400">
-              Real-time endpoint health and latency
-            </p>
           </div>
+          <p className="text-xs sm:text-sm text-gray-400 mt-2">
+            Real-time endpoint health and latency
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge
@@ -246,7 +247,10 @@ const ApiStatusDashboard = memo(() => {
             )}
             <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
               <Clock className="h-3 w-3 mr-1" />
-              Updated: {data?.timestamp ? new Date(data.timestamp).toLocaleTimeString() : "—"}
+              Updated:{" "}
+              {data?.timestamp
+                ? new Date(data.timestamp).toLocaleTimeString()
+                : "—"}
             </Badge>
           </div>
         </CardContent>

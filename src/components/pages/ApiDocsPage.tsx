@@ -1,8 +1,16 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpen } from "lucide-react";
+import {
+  BookOpen,
+  UtensilsCrossed,
+  Wine,
+  FolderOpen,
+  CalendarDays,
+  FileText,
+  Server,
+} from "lucide-react";
 import { AuthProvider } from "../../context/AuthContext";
 import { RecipeProvider } from "../../context/RecipeContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -19,51 +27,229 @@ type EndpointDoc = {
   params?: string;
 };
 
+/** Lucide icon per API docs category - icon only on phone, text on sm+ */
+const API_DOCS_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
+  Recipes: UtensilsCrossed,
+  "Food & Wine": Wine,
+  Collections: FolderOpen,
+  "Meal & Shopping": CalendarDays,
+  CMS: FileText,
+  Platform: Server,
+};
+
 const API_DOCS: Record<string, EndpointDoc[]> = {
   Recipes: [
-    { method: "GET", path: "/api/recipes/search", description: "Search recipes", params: "searchTerm, page, cuisine, diet, type" },
-    { method: "GET", path: "/api/recipes/autocomplete", description: "Autocomplete recipe search", params: "query, number" },
-    { method: "GET", path: "/api/recipes/[id]/information", description: "Get recipe details", params: "id" },
-    { method: "GET", path: "/api/recipes/[id]/summary", description: "Get recipe summary", params: "id" },
-    { method: "GET", path: "/api/recipes/[id]/similar", description: "Get similar recipes", params: "id" },
-    { method: "GET", path: "/api/recipes/favourite", description: "List favourites", params: "auth" },
-    { method: "POST", path: "/api/recipes/favourite", description: "Add favourite", params: "recipeId" },
-    { method: "DELETE", path: "/api/recipes/favourite", description: "Remove favourite", params: "recipeId" },
-    { method: "GET", path: "/api/recipes/images", description: "Get recipe images", params: "recipeId" },
-    { method: "GET", path: "/api/recipes/notes", description: "Get recipe notes", params: "recipeId" },
-    { method: "GET", path: "/api/recipes/videos", description: "Get recipe videos", params: "recipeId" },
+    {
+      method: "GET",
+      path: "/api/recipes/search",
+      description: "Search recipes",
+      params: "searchTerm, page, cuisine, diet, type",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/autocomplete",
+      description: "Autocomplete recipe search",
+      params: "query, number",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/[id]/information",
+      description: "Get recipe details",
+      params: "id",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/[id]/summary",
+      description: "Get recipe summary",
+      params: "id",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/[id]/similar",
+      description: "Get similar recipes",
+      params: "id",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/favourite",
+      description: "List favourites",
+      params: "auth",
+    },
+    {
+      method: "POST",
+      path: "/api/recipes/favourite",
+      description: "Add favourite",
+      params: "recipeId",
+    },
+    {
+      method: "DELETE",
+      path: "/api/recipes/favourite",
+      description: "Remove favourite",
+      params: "recipeId",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/images",
+      description: "Get recipe images",
+      params: "recipeId",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/notes",
+      description: "Get recipe notes",
+      params: "recipeId",
+    },
+    {
+      method: "GET",
+      path: "/api/recipes/videos",
+      description: "Get recipe videos",
+      params: "recipeId",
+    },
   ],
   "Food & Wine": [
-    { method: "GET", path: "/api/food/wine/dishes", description: "Dish pairing for wine", params: "wine" },
-    { method: "GET", path: "/api/food/wine/pairing", description: "Wine pairing for food", params: "food, maxPrice" },
+    {
+      method: "GET",
+      path: "/api/food/wine/dishes",
+      description: "Dish pairing for wine",
+      params: "wine",
+    },
+    {
+      method: "GET",
+      path: "/api/food/wine/pairing",
+      description: "Wine pairing for food",
+      params: "food, maxPrice",
+    },
   ],
   Collections: [
-    { method: "GET", path: "/api/collections", description: "List collections", params: "auth" },
-    { method: "GET", path: "/api/collections/[id]", description: "Get collection", params: "id" },
-    { method: "GET", path: "/api/collections/[id]/items", description: "List collection items", params: "id" },
-    { method: "GET", path: "/api/collections/[id]/recipes", description: "Collection items with recipe details", params: "id" },
-    { method: "POST", path: "/api/collections", description: "Create collection", params: "name" },
-    { method: "POST", path: "/api/collections/[id]/items", description: "Add item to collection", params: "recipeId" },
-    { method: "PUT", path: "/api/collections/[id]", description: "Update collection", params: "name" },
-    { method: "DELETE", path: "/api/collections/[id]", description: "Delete collection", params: "id" },
-    { method: "DELETE", path: "/api/collections/[id]/items", description: "Remove item", params: "recipeId" },
+    {
+      method: "GET",
+      path: "/api/collections",
+      description: "List collections",
+      params: "auth",
+    },
+    {
+      method: "GET",
+      path: "/api/collections/[id]",
+      description: "Get collection",
+      params: "id",
+    },
+    {
+      method: "GET",
+      path: "/api/collections/[id]/items",
+      description: "List collection items",
+      params: "id",
+    },
+    {
+      method: "GET",
+      path: "/api/collections/[id]/recipes",
+      description: "Collection items with recipe details",
+      params: "id",
+    },
+    {
+      method: "POST",
+      path: "/api/collections",
+      description: "Create collection",
+      params: "name",
+    },
+    {
+      method: "POST",
+      path: "/api/collections/[id]/items",
+      description: "Add item to collection",
+      params: "recipeId",
+    },
+    {
+      method: "PUT",
+      path: "/api/collections/[id]",
+      description: "Update collection",
+      params: "name",
+    },
+    {
+      method: "DELETE",
+      path: "/api/collections/[id]",
+      description: "Delete collection",
+      params: "id",
+    },
+    {
+      method: "DELETE",
+      path: "/api/collections/[id]/items",
+      description: "Remove item",
+      params: "recipeId",
+    },
   ],
   "Meal & Shopping": [
-    { method: "GET", path: "/api/meal-plan", description: "Get meal plan", params: "auth" },
-    { method: "POST", path: "/api/meal-plan", description: "Add to meal plan", params: "recipeId, date, slot" },
-    { method: "DELETE", path: "/api/meal-plan", description: "Remove from meal plan", params: "auth" },
-    { method: "GET", path: "/api/shopping-list", description: "Get shopping list", params: "auth" },
-    { method: "POST", path: "/api/shopping-list", description: "Add to shopping list", params: "items" },
-    { method: "PUT", path: "/api/shopping-list", description: "Update shopping list", params: "items" },
-    { method: "DELETE", path: "/api/shopping-list", description: "Clear shopping list", params: "auth" },
+    {
+      method: "GET",
+      path: "/api/meal-plan",
+      description: "Get meal plan",
+      params: "auth",
+    },
+    {
+      method: "POST",
+      path: "/api/meal-plan",
+      description: "Add to meal plan",
+      params: "recipeId, date, slot",
+    },
+    {
+      method: "DELETE",
+      path: "/api/meal-plan",
+      description: "Remove from meal plan",
+      params: "auth",
+    },
+    {
+      method: "GET",
+      path: "/api/shopping-list",
+      description: "Get shopping list",
+      params: "auth",
+    },
+    {
+      method: "POST",
+      path: "/api/shopping-list",
+      description: "Add to shopping list",
+      params: "items",
+    },
+    {
+      method: "PUT",
+      path: "/api/shopping-list",
+      description: "Update shopping list",
+      params: "items",
+    },
+    {
+      method: "DELETE",
+      path: "/api/shopping-list",
+      description: "Clear shopping list",
+      params: "auth",
+    },
   ],
   CMS: [
-    { method: "GET", path: "/api/cms/blog", description: "List blog posts", params: "" },
-    { method: "GET", path: "/api/cms/blog/[slug]", description: "Get blog post", params: "slug" },
+    {
+      method: "GET",
+      path: "/api/cms/blog",
+      description: "List blog posts",
+      params: "",
+    },
+    {
+      method: "GET",
+      path: "/api/cms/blog/[slug]",
+      description: "Get blog post",
+      params: "slug",
+    },
   ],
   Platform: [
-    { method: "GET", path: "/api/business-insights", description: "Platform statistics", params: "" },
-    { method: "GET", path: "/api/status", description: "API health status", params: "" },
+    {
+      method: "GET",
+      path: "/api/business-insights",
+      description: "Platform statistics",
+      params: "",
+    },
+    {
+      method: "GET",
+      path: "/api/status",
+      description: "API health status",
+      params: "",
+    },
   ],
 };
 
@@ -119,33 +305,37 @@ const ApiDocsContent = memo(() => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl">
-            <BookOpen className="h-7 w-7 text-violet-400" />
+      {/* Header - icon + title inline, description below (home page style) */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-3 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl flex-shrink-0 flex items-center">
+            <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-violet-400" />
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">
-              API Documentation
-            </h1>
-            <p className="text-sm text-gray-400">
-              Endpoint reference grouped by category
-            </p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-white break-words">
+            API Documentation
+          </h1>
         </div>
+        <p className="text-xs sm:text-sm text-gray-400 mt-2">
+          Endpoint reference grouped by category
+        </p>
       </div>
 
       <Tabs defaultValue="Recipes" className="w-full">
-        <TabsList className="bg-slate-800/80 border border-slate-500/30 text-gray-300 h-10 p-1 gap-1 flex-wrap">
-          {Object.keys(API_DOCS).map((cat) => (
-            <TabsTrigger
-              key={cat}
-              value={cat}
-              className="data-[state=active]:bg-purple-500/30 data-[state=active]:text-white data-[state=active]:border-purple-500/50"
-            >
-              {cat}
-            </TabsTrigger>
-          ))}
+        <TabsList className="bg-slate-800/80 border border-slate-500/30 text-gray-300 h-10 p-1 gap-1 flex-wrap min-w-0 w-full">
+          {Object.keys(API_DOCS).map((cat) => {
+            const Icon = API_DOCS_ICONS[cat];
+            return (
+              <TabsTrigger
+                key={cat}
+                value={cat}
+                title={cat}
+                className="flex flex-1 items-center justify-center gap-2 data-[state=active]:bg-purple-500/30 data-[state=active]:text-white data-[state=active]:border-purple-500/50 px-2 sm:px-3"
+              >
+                {Icon && <Icon className="h-4 w-4 flex-shrink-0" />}
+                <span className="hidden sm:inline">{cat}</span>
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
         {Object.entries(API_DOCS).map(([cat, endpoints]) => (
           <TabsContent key={cat} value={cat} className="mt-4 space-y-4">
@@ -164,10 +354,10 @@ const ApiDocsContent = memo(() => {
                             ep.method === "GET"
                               ? "bg-green-500/20 text-green-300 border-green-500/30"
                               : ep.method === "POST"
-                              ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
-                              : ep.method === "PUT"
-                              ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                              : "bg-red-500/20 text-red-300 border-red-500/30"
+                                ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                                : ep.method === "PUT"
+                                  ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                                  : "bg-red-500/20 text-red-300 border-red-500/30"
                           }
                         >
                           {ep.method}
@@ -176,7 +366,9 @@ const ApiDocsContent = memo(() => {
                           {ep.path}
                         </code>
                       </div>
-                      <p className="text-sm text-gray-400 mt-2">{ep.description}</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        {ep.description}
+                      </p>
                       {ep.params && (
                         <p className="text-xs text-gray-500 mt-1">
                           Params: {ep.params}

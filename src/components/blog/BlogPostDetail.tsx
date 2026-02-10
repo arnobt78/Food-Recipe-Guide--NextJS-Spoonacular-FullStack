@@ -109,8 +109,8 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
     >
       {/* Header with Title and Metadata */}
       <CardHeader className="relative bg-gradient-to-r from-teal-900/50 to-cyan-900/50 border-b border-teal-500/30 rounded-t-[28px] p-6">
-        {/* Metadata */}
-        <div className="flex items-center justify-between border-b border-white/30 pb-4">
+        {/* Metadata - stacked on phone, side-by-side on sm+ */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/30 pb-4">
           <div className="flex items-center gap-3">
             {post.author?.avatar ? (
               <Image
@@ -181,7 +181,7 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
 
         {/* Content */}
         <div
-          className="prose prose-invert prose-lg max-w-none text-gray-300"
+          className="prose prose-invert prose-lg max-w-none text-gray-300 text-sm sm:text-md"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
