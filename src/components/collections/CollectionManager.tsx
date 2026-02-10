@@ -23,7 +23,7 @@ import CollectionCard from "./CollectionCard";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Plus, X, FolderOpen } from "lucide-react";
+import { Plus, FolderOpen } from "lucide-react";
 import { RecipeCollection } from "../../types";
 import EmptyState from "../common/EmptyState";
 import SkeletonRecipeGrid from "../skeletons/SkeletonRecipeGrid";
@@ -67,7 +67,7 @@ const CollectionManager = memo(
             setNewCollectionDescription("");
             setIsCreating(false);
           },
-        }
+        },
       );
     }, [newCollectionName, newCollectionDescription, createCollection]);
 
@@ -93,27 +93,28 @@ const CollectionManager = memo(
 
     return (
       <div className="space-y-6">
-        {/* Collections Header */}
+        {/* Collections Header - icon + title inline, description below (Business Insights style) */}
         <Card className="glow-card border-purple-500/30">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl self-stretch flex items-center">
-                  <FolderOpen className="h-6 w-6 text-purple-400" />
-                </div>
-                <div className="flex flex-col">
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex-shrink-0 flex items-center">
+                    <FolderOpen className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <CardTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent break-words">
                     My Collections
                   </CardTitle>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Organize your favourite recipes into custom collections for easy access.
-                  </p>
                 </div>
+                <p className="text-xs sm:text-sm text-gray-400 mt-2">
+                  Organize your favourite recipes into custom collections for
+                  easy access.
+                </p>
               </div>
               {!isCreating && (
                 <Button
                   onClick={() => setIsCreating(true)}
-                  className="glow-button flex items-center gap-2"
+                  className="glow-button flex items-center gap-2 flex-shrink-0 self-start sm:self-auto"
                   aria-label="Create new collection"
                 >
                   <Plus className="h-4 w-4" />
@@ -179,10 +180,11 @@ const CollectionManager = memo(
                         setNewCollectionName("");
                         setNewCollectionDescription("");
                       }}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-400 hover:text-white border-2 border-gray-500/30 rounded-md px-4 py-1"
                       aria-label="Cancel creating collection"
                     >
-                      <X className="h-4 w-4" />
+                      Cancel
+                      {/* <X className="h-4 w-4" /> */}
                     </Button>
                   </div>
                 </CardContent>
@@ -227,7 +229,7 @@ const CollectionManager = memo(
         />
       </div>
     );
-  }
+  },
 );
 
 CollectionManager.displayName = "CollectionManager";

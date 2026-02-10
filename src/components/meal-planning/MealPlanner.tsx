@@ -213,40 +213,47 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
     <div className="space-y-6">
       {/* Week Navigation */}
       <Card className="glow-card border-purple-500/30">
+        {/* Header - icon + title inline, description below (Business Insights style) */}
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl self-stretch flex items-center">
-                <CalendarIcon className="h-6 w-6 text-green-400" />
-              </div>
-              <div className="flex flex-col">
-                <CardTitle className="text-lg font-bold bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex-shrink-0 flex items-center">
+                  <CalendarIcon className="h-6 w-6 text-green-400" />
+                </div>
+                <CardTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent break-words">
                   Meal Planner
                 </CardTitle>
-                <p className="text-sm text-gray-400 mt-1">
-                  Plan your weekly meals by adding recipes from your favourites.
-                  Click on any meal to view its details.
-                </p>
               </div>
+              <p className="text-xs sm:text-sm text-gray-400 mt-2">
+                Plan your weekly meals by adding recipes from your favourites.
+                Click on any meal to view its details.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto min-w-0 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handlePreviousWeek}
-                className="glow-button"
+                className="glow-button flex-shrink-0"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium px-4">
-                {format(currentWeekStart, "MMM d")} -{" "}
-                {format(addDays(currentWeekStart, 6), "MMM d, yyyy")}
+              <span className="text-xs sm:text-sm font-medium px-2 sm:px-4 min-w-0 text-center">
+                <span className="sm:hidden">
+                  {format(currentWeekStart, "M/d")} -{" "}
+                  {format(addDays(currentWeekStart, 6), "M/d/yy")}
+                </span>
+                <span className="hidden sm:inline">
+                  {format(currentWeekStart, "MMM d")} -{" "}
+                  {format(addDays(currentWeekStart, 6), "MMM d, yyyy")}
+                </span>
               </span>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleNextWeek}
-                className="glow-button"
+                className="glow-button flex-shrink-0"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>

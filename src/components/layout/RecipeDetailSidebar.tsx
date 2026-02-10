@@ -51,6 +51,10 @@ interface RecipeDetailSidebarProps {
   hasTaste?: boolean;
   isAuthenticated?: boolean;
   className?: string;
+  /** When true, renders for use inside Sheet (no fixed positioning, full labels). */
+  embedded?: boolean;
+  /** Optional callback when a tab is selected (e.g. to close Sheet on phone). */
+  onNavigate?: () => void;
 }
 
 /**
@@ -68,7 +72,17 @@ const RecipeDetailSidebar = memo(
     hasTaste = false,
     isAuthenticated = false,
     className = "",
+    embedded = false,
+    onNavigate,
   }: RecipeDetailSidebarProps) => {
+    const handleTabChange = (tab: string) => {
+      onTabChange(tab);
+      onNavigate?.();
+    };
+    const handleSubTabChange = (subTab: string) => {
+      onSubTabChange?.(subTab);
+      onNavigate?.();
+    };
     // Define all sidebar items
     const sidebarItems: SidebarItem[] = [
       {
@@ -169,14 +183,15 @@ const RecipeDetailSidebar = memo(
         : []),
     ];
 
+    const Wrapper = embedded ? "div" : "aside";
     return (
-      <aside
+      <Wrapper
         className={cn(
-          "fixed left-0 top-0 h-screen z-30",
+          "flex flex-col overflow-y-auto custom-scrollbar",
           "bg-slate-900/80 backdrop-blur-sm border-r border-green-500/20",
-          "flex flex-col",
-          "w-[15%] sm:w-64", // 15% on mobile, fixed 256px on desktop
-          "overflow-y-auto custom-scrollbar",
+          embedded
+            ? "relative h-full w-full min-w-0"
+            : "fixed left-0 top-0 h-screen z-30 w-[15%] sm:w-64",
           className
         )}
       >
@@ -193,7 +208,12 @@ const RecipeDetailSidebar = memo(
             className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0"
             style={{ width: "auto" }}
           />
-          <span className="text-sm sm:text-base font-bold gradient-text hidden sm:inline">
+          <span
+            className={cn(
+              "text-sm sm:text-base font-bold gradient-text",
+              embedded ? "inline" : "hidden sm:inline"
+            )}
+          >
             Recipe Guide
           </span>
         </Link>
@@ -208,7 +228,7 @@ const RecipeDetailSidebar = memo(
             return (
               <div key={item.id} className="space-y-1">
                 <button
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => handleTabChange(item.id)}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg",
                     "text-sm font-medium transition-all duration-200",
@@ -221,7 +241,12 @@ const RecipeDetailSidebar = memo(
                   aria-current={isActive ? "page" : undefined}
                 >
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                  <span className="hidden sm:inline truncate">
+                  <span
+                    className={cn(
+                      "truncate",
+                      embedded ? "inline" : "hidden sm:inline"
+                    )}
+                  >
                     {item.label}
                   </span>
                 </button>
@@ -236,7 +261,7 @@ const RecipeDetailSidebar = memo(
                       return (
                         <button
                           key={subItem.id}
-                          onClick={() => onSubTabChange(subItem.id)}
+                          onClick={() => handleSubTabChange(subItem.id)}
                           className={cn(
                             "w-full flex items-center gap-3 px-3 py-2 rounded-lg",
                             "text-xs sm:text-sm font-medium transition-all duration-200",
@@ -249,7 +274,12 @@ const RecipeDetailSidebar = memo(
                           aria-current={isSubActive ? "page" : undefined}
                         >
                           <SubIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="hidden sm:inline truncate">
+                          <span
+                            className={cn(
+                              "truncate",
+                              embedded ? "inline" : "hidden sm:inline"
+                            )}
+                          >
                             {subItem.label}
                           </span>
                         </button>
@@ -261,7 +291,7 @@ const RecipeDetailSidebar = memo(
             );
           })}
         </nav>
-      </aside>
+      </Wrapper>
     );
   }
 );

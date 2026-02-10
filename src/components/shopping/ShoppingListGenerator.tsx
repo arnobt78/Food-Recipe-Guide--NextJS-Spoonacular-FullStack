@@ -121,7 +121,7 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
           setSelectedRecipes([]);
           setIsCreating(false);
         },
-      }
+      },
     );
   }, [listName, selectedRecipes, shoppingListItems, createShoppingList]);
 
@@ -134,7 +134,7 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
         },
       });
     },
-    [updateShoppingList]
+    [updateShoppingList],
   );
 
   const handleDelete = useCallback((list: ShoppingList) => {
@@ -175,25 +175,27 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
     <div className="space-y-6">
       {/* Create New Shopping List */}
       <Card className="glow-card border-purple-500/30">
+        {/* Header - icon + title inline, description below (Business Insights style) */}
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl self-stretch flex items-center">
-                <ShoppingCart className="h-6 w-6 text-orange-400" />
-              </div>
-              <div className="flex flex-col">
-                <CardTitle className="text-lg font-bold bg-gradient-to-r from-orange-400 via-amber-400 to-orange-400 bg-clip-text text-transparent">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-3 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl flex-shrink-0 flex items-center">
+                  <ShoppingCart className="h-6 w-6 text-orange-400" />
+                </div>
+                <CardTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-orange-400 via-amber-400 to-orange-400 bg-clip-text text-transparent break-words">
                   Shopping List Generator
                 </CardTitle>
-                <p className="text-sm text-gray-400 mt-1">
-                  Create shopping lists from your favourite recipes and export them for easy grocery shopping.
-                </p>
               </div>
+              <p className="text-xs sm:text-sm text-gray-400 mt-2">
+                Create shopping lists from your favourite recipes and export
+                them for easy grocery shopping.
+              </p>
             </div>
             {!isCreating && (
               <Button
                 onClick={() => setIsCreating(true)}
-                className="glow-button flex items-center gap-2"
+                className="glow-button flex items-center gap-2 flex-shrink-0 self-start sm:self-auto"
                 variant="default"
                 aria-label="Create new shopping list"
               >
@@ -205,119 +207,119 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
         </CardHeader>
         {isCreating && (
           <CardContent className="space-y-4">
-              <Input
-                placeholder="Shopping list name..."
-                value={listName}
-                onChange={(e) => setListName(e.target.value)}
-                className="glow-card"
-                aria-label="Shopping list name"
-                aria-required="true"
-              />
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Select Recipes:</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-64 overflow-y-auto custom-scrollbar">
-                  {favouriteRecipes.length === 0 ? (
-                    <EmptyState message="No favourite recipes. Add some from the search tab!" />
-                  ) : (
-                    favouriteRecipes.map((recipe) => {
-                      const isSelected = selectedRecipes.some(
-                        (r) => r.id === recipe.id
-                      );
-                      return (
-                        <motion.div
-                          key={recipe.id}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Card
-                            className={`glow-card cursor-pointer transition-all ${
-                              isSelected
-                                ? "border-purple-500 bg-purple-500/20"
-                                : "border-purple-500/30"
-                            }`}
-                            onClick={() => handleToggleRecipe(recipe)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start gap-3">
-                                {recipe.image && (
-                                  <div className="relative w-16 h-16 rounded overflow-hidden">
-                                    <Image
-                                      src={recipe.image}
-                                      alt={recipe.title}
-                                      fill
-                                      sizes="64px"
-                                      className="object-cover rounded"
-                                    />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">
-                                    {recipe.title}
-                                  </p>
-                                  {isSelected && (
-                                    <Badge
-                                      variant="outline"
-                                      className="glow-badge mt-1 text-xs"
-                                    >
-                                      Selected
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-              {shoppingListItems.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">
-                    Generated Items ({shoppingListItems.length}):
-                  </p>
-                  <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-                    {shoppingListItems.map((item, index) => (
-                      <div
-                        key={index}
-                        className="text-xs p-2 bg-slate-800/50 rounded border border-purple-500/20"
+            <Input
+              placeholder="Shopping list name..."
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              className="glow-card"
+              aria-label="Shopping list name"
+              aria-required="true"
+            />
+            <div className="space-y-2 min-w-0">
+              <p className="text-sm font-medium">Select Recipes:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar min-w-0">
+                {favouriteRecipes.length === 0 ? (
+                  <EmptyState message="No favourite recipes. Add some from the search tab!" />
+                ) : (
+                  favouriteRecipes.map((recipe) => {
+                    const isSelected = selectedRecipes.some(
+                      (r) => r.id === recipe.id,
+                    );
+                    return (
+                      <motion.div
+                        key={recipe.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        <span className="font-medium">{item.name}</span> -{" "}
-                        {item.quantity} {item.unit || ""} ({item.category})
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleCreateList}
-                  disabled={!listName.trim() || selectedRecipes.length === 0}
-                  className="glow-button flex-1"
-                  aria-label="Create shopping list"
-                >
-                  Create List
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsCreating(false);
-                    setListName("");
-                    setSelectedRecipes([]);
-                  }}
-                  aria-label="Cancel creating shopping list"
-                >
-                  Cancel
-                </Button>
+                        <Card
+                          className={`glow-card cursor-pointer transition-all min-w-0 ${
+                            isSelected
+                              ? "border-purple-500 bg-purple-500/20"
+                              : "border-purple-500/30"
+                          }`}
+                          onClick={() => handleToggleRecipe(recipe)}
+                        >
+                          <CardContent className="p-4 min-w-0">
+                            <div className="flex items-start gap-3 min-w-0">
+                              {recipe.image && (
+                                <div className="relative w-16 h-16 rounded overflow-hidden">
+                                  <Image
+                                    src={recipe.image}
+                                    alt={recipe.title}
+                                    fill
+                                    sizes="64px"
+                                    className="object-cover rounded"
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {recipe.title}
+                                </p>
+                                {isSelected && (
+                                  <Badge
+                                    variant="outline"
+                                    className="glow-badge mt-1 text-xs"
+                                  >
+                                    Selected
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })
+                )}
               </div>
+            </div>
+            {shoppingListItems.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">
+                  Generated Items ({shoppingListItems.length}):
+                </p>
+                <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                  {shoppingListItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className="text-xs p-2 bg-slate-800/50 rounded border border-purple-500/20"
+                    >
+                      <span className="font-medium">{item.name}</span> -{" "}
+                      {item.quantity} {item.unit || ""} ({item.category})
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCreateList}
+                disabled={!listName.trim() || selectedRecipes.length === 0}
+                className="glow-button"
+                aria-label="Create shopping list"
+              >
+                Create List
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreating(false);
+                  setListName("");
+                  setSelectedRecipes([]);
+                }}
+                aria-label="Cancel creating shopping list"
+              >
+                Cancel
+              </Button>
+            </div>
           </CardContent>
         )}
       </Card>
 
       {/* Existing Shopping Lists */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="text-md sm:text-lg font-semibold text-white">
           Your Shopping Lists
         </h3>
         {displayShoppingLists.length === 0 ? (
@@ -343,7 +345,7 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <CardTitle className="text-base flex items-center gap-2">
+                        <CardTitle className="text-md sm:text-lg flex items-center gap-2">
                           {list.isCompleted ? (
                             <CheckCircle2 className="h-4 w-4 text-green-500" />
                           ) : (
@@ -354,7 +356,7 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="h-6 w-6 border-2 border-gray-500/30 rounded-md"
                           onClick={() => handleDelete(list)}
                           aria-label={`Delete shopping list ${list.name}`}
                         >

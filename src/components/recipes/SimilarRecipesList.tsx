@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { SimilarRecipe } from "../../types";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { UtensilsCrossed, Clock, Users, ExternalLink } from "lucide-react";
+import { UtensilsCrossed, Clock, Users, ExternalLink, MousePointerClick } from "lucide-react";
 import { Button } from "../ui/button";
 import { getRecipeImageUrl } from "../../utils/imageUtils";
 
@@ -43,7 +43,7 @@ const SimilarRecipesList = memo(
       (recipeId: number) => {
         router.push(`/recipe/${recipeId}`);
       },
-      [router]
+      [router],
     );
 
     if (similarRecipes.length === 0) {
@@ -52,17 +52,20 @@ const SimilarRecipesList = memo(
 
     return (
       <Card
-        className={`bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-500/30 p-4 sm:p-6 ${className}`}
+        className={`bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-500/30 p-4 sm:p-6 min-w-0 overflow-hidden ${className}`}
       >
-        <div className="flex items-start gap-3 mb-4">
-          <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
-            <UtensilsCrossed className="h-5 w-5 text-blue-400" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg sm:text-xl font-semibold text-white mb-1">
+        {/* Header: icon + title inline (icon minimal); description from start like Discover Amazing Recipes */}
+        <div className="space-y-4 min-w-0 mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+              <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+            </div>
+            <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words">
               Similar Recipes
             </h3>
-            <p className="text-sm text-gray-400">
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm sm:text-base text-gray-400 break-words">
               Explore related recipes you might enjoy
             </p>
           </div>
@@ -86,32 +89,33 @@ const SimilarRecipesList = memo(
                     handleRecipeClick(similarRecipe.id);
                   }
                 }}
-                className="w-full flex gap-3 p-3 bg-slate-800/50 rounded-lg border border-blue-500/20 hover:border-blue-500/40 hover:bg-slate-800/70 transition-all group text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full flex flex-col sm:flex-row gap-3 p-3 bg-slate-800/50 rounded-lg border border-blue-500/20 hover:border-blue-500/40 hover:bg-slate-800/70 transition-all group text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-0"
               >
-                {/* Recipe Image */}
+                {/* Recipe Image - full width on phone, thumbnail on sm+ */}
                 {imageUrl && (
-                  <div className="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-blue-500/20">
+                  <div className="relative flex-shrink-0 w-full sm:w-24 sm:min-w-[6rem] aspect-video sm:aspect-square sm:h-24 rounded-lg overflow-hidden border border-blue-500/20">
                     <Image
                       src={imageUrl}
                       alt={similarRecipe.title}
                       fill
-                      sizes="(max-width: 640px) 80px, 96px"
+                      sizes="(max-width: 640px) 100vw, 96px"
                       className="object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
                 )}
 
-                {/* Recipe Info */}
+                {/* Recipe Info - stack on phone: title, View, then badges */}
                 <div className="flex-1 flex flex-col gap-2 min-w-0">
-                  <div className="flex items-start gap-2">
-                    <span className="flex-1 text-blue-300 group-hover:text-blue-200 font-medium break-words text-sm sm:text-base">
-                      {similarRecipe.title}
-                    </span>
-                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs flex-shrink-0">
+                  <span className="text-blue-300 group-hover:text-blue-200 font-medium break-words text-sm sm:text-base">
+                    {similarRecipe.title}
+                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs inline-flex items-center gap-1 w-fit">
+                      <MousePointerClick className="h-3 w-3" />
                       View
                     </Badge>
                   </div>
-                  {/* Display additional info from similar recipes API */}
+                  {/* Badges: flex-wrap, multiple per line, wrap to multiple lines when needed */}
                   <div className="flex flex-wrap gap-2">
                     {similarRecipe.readyInMinutes !== undefined && (
                       <Badge className="bg-blue-500/10 text-blue-300 border-blue-500/20 text-xs">
@@ -135,7 +139,7 @@ const SimilarRecipesList = memo(
                           window.open(
                             similarRecipe.sourceUrl,
                             "_blank",
-                            "noopener,noreferrer"
+                            "noopener,noreferrer",
                           );
                         }}
                       >
@@ -159,7 +163,7 @@ const SimilarRecipesList = memo(
         </div>
       </Card>
     );
-  }
+  },
 );
 
 SimilarRecipesList.displayName = "SimilarRecipesList";
