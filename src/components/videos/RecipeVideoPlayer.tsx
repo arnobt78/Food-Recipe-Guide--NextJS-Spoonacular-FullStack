@@ -104,10 +104,10 @@ function getVimeoEmbedUrl(videoId: string): string {
 }
 
 /**
- * Get YouTube thumbnail URL
+ * Get YouTube thumbnail URL (hqdefault is more reliable than maxresdefault which often 404s)
  */
 function getYouTubeThumbnail(videoId: string): string {
-  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
 
 /**
@@ -140,6 +140,9 @@ const RecipeVideoPlayer = memo(
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [videoToDelete, setVideoToDelete] = useState<RecipeVideo | null>(
       null,
+    );
+    const [thumbnailFailedIds, setThumbnailFailedIds] = useState<Set<string>>(
+      () => new Set(),
     );
 
     // Form state
@@ -466,13 +469,19 @@ const RecipeVideoPlayer = memo(
                                     embedUrl && setSelectedVideo(video)
                                   }
                                 >
-                                  {thumbnailUrl ? (
+                                  {thumbnailUrl &&
+                                  !thumbnailFailedIds.has(video.id) ? (
                                     <Image
                                       src={thumbnailUrl}
                                       alt={video.title || "Video thumbnail"}
                                       fill
                                       sizes="(max-width: 768px) 100vw, 50vw"
                                       className="object-cover"
+                                      onError={() =>
+                                        setThumbnailFailedIds((prev) =>
+                                          new Set(prev).add(video.id),
+                                        )
+                                      }
                                     />
                                   ) : (
                                     <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">

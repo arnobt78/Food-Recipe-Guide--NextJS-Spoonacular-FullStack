@@ -53,6 +53,11 @@ const nextConfig = {
         hostname: "robohash.org",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+        pathname: "/**",
+      },
     ],
   },
   // Environment variables that should be available on the client
