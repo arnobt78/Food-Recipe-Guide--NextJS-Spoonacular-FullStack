@@ -437,7 +437,7 @@ const RecipeDetailCard = memo(
                         <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                           <div className="flex items-start gap-2">
                             <Info className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <p className="text-xs text-blue-300 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-blue-300 leading-relaxed">
                               <span className="font-semibold">Note:</span> All
                               nutritional information, pricing, and recipe
                               details are fetched directly from the Spoonacular

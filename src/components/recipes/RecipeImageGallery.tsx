@@ -21,7 +21,7 @@ import {
   useAddRecipeImage,
   useRemoveRecipeImage,
 } from "../../hooks/useRecipeImages";
-import { Card, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { X, Plus, Camera } from "lucide-react";
 import { Recipe, RecipeImage } from "../../types";
@@ -137,141 +137,159 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <CardTitle className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-          <div className="p-3 bg-emerald-500/20 rounded-lg">
-            <Camera className="h-6 w-6 text-emerald-400" />
-          </div>
-          Recipe Images
-        </CardTitle>
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              variant="default"
-              className="glow-button"
-              aria-label="Add image to recipe"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Image
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Upload Recipe Image</DialogTitle>
-              <DialogDescription>
-                Upload an image for this recipe. You can categorize it as final
-                dish, step-by-step, ingredient, or custom.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Image Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["final", "step", "ingredient", "custom"] as const).map(
-                    (type) => {
-                      const isSelected = selectedImageType === type;
-                      return (
-                        <Button
-                          key={type}
-                          type="button"
-                          onClick={() => setSelectedImageType(type)}
-                          className={`inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold transition duration-200 backdrop-blur-sm ${
-                            isSelected
-                              ? "border-emerald-400/50 bg-gradient-to-r from-emerald-500/70 via-emerald-500/50 to-emerald-500/30 text-white shadow-[0_15px_35px_rgba(16,185,129,0.45)] hover:border-emerald-300/60 hover:from-emerald-500/80 hover:via-emerald-500/60 hover:to-emerald-500/40"
-                              : "border-slate-400/30 bg-gradient-to-r from-slate-500/30 via-slate-500/20 to-slate-500/10 text-white/70 shadow-[0_15px_35px_rgba(71,85,105,0.25)] hover:border-slate-300/50 hover:from-slate-500/50 hover:via-slate-500/30 hover:to-slate-500/20 hover:text-white"
-                          }`}
-                          aria-label={`Select ${imageTypeLabels[type]} image type`}
-                          aria-pressed={isSelected}
-                        >
-                          {imageTypeLabels[type]}
-                        </Button>
-                      );
-                    },
-                  )}
-                </div>
+    <Card className="group rounded-[28px] border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 via-emerald-500/10 to-emerald-500/5 p-4 sm:p-6 shadow-[0_30px_80px_rgba(16,185,129,0.35)] transition hover:border-emerald-300/50 backdrop-blur-sm min-w-0 overflow-hidden">
+      <CardContent className="p-0 bg-transparent">
+        <div className="space-y-4 min-w-0">
+          {/* Header: icon+title inline; Add button stacks on phone */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-emerald-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                <Camera className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
               </div>
-              <ImageUploader
-                onUploadComplete={handleUploadComplete}
-                presetId="recipe_gallery"
-                recipeId={recipe.id}
-              />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words">
+                  Recipe Images
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-400 mt-0.5 break-words">
+                  Add photos of the final dish, steps, or ingredients.
+                </p>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Images by Type */}
-      {images.length === 0 ? (
-        <EmptyState message="No images yet. Add some images to showcase your recipe!" />
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(imagesByType).map(
-            ([type, typeImages]) =>
-              typeImages.length > 0 && (
-                <div key={type} className="space-y-3">
-                  <h4 className="text-sm font-semibold text-purple-300">
-                    {imageTypeLabels[type]} ({typeImages.length})
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <AnimatePresence>
-                      {typeImages.map((image, imageIndex) => (
-                        <motion.div
-                          key={image.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          className="relative group"
-                        >
-                          <Card className="glow-card border-purple-500/30 overflow-hidden">
-                            <div className="aspect-square relative">
-                              <Image
-                                src={image.imageUrl}
-                                alt={image.caption || `Recipe ${type} image`}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                className="object-cover"
-                                priority={imageIndex < 3}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70"
-                                onClick={() => handleDelete(image)}
-                                aria-label={`Delete ${
-                                  image.caption || image.imageType
-                                } image`}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                              {image.caption && (
-                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/60 text-xs text-white truncate">
-                                  {image.caption}
-                                </div>
-                              )}
-                            </div>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+            <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  className="glow-button w-fit self-start sm:self-center"
+                  aria-label="Add image to recipe"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Image
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Upload Recipe Image</DialogTitle>
+                  <DialogDescription>
+                    Upload an image for this recipe. You can categorize it as
+                    final dish, step-by-step, ingredient, or custom.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Image Type</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["final", "step", "ingredient", "custom"] as const).map(
+                        (type) => {
+                          const isSelected = selectedImageType === type;
+                          return (
+                            <Button
+                              key={type}
+                              type="button"
+                              onClick={() => setSelectedImageType(type)}
+                              className={`inline-flex items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold transition duration-200 backdrop-blur-sm ${
+                                isSelected
+                                  ? "border-emerald-400/50 bg-gradient-to-r from-emerald-500/70 via-emerald-500/50 to-emerald-500/30 text-white shadow-[0_15px_35px_rgba(16,185,129,0.45)] hover:border-emerald-300/60 hover:from-emerald-500/80 hover:via-emerald-500/60 hover:to-emerald-500/40"
+                                  : "border-slate-400/30 bg-gradient-to-r from-slate-500/30 via-slate-500/20 to-slate-500/10 text-white/70 shadow-[0_15px_35px_rgba(71,85,105,0.25)] hover:border-slate-300/50 hover:from-slate-500/50 hover:via-slate-500/30 hover:to-slate-500/20 hover:text-white"
+                              }`}
+                              aria-label={`Select ${imageTypeLabels[type]} image type`}
+                              aria-pressed={isSelected}
+                            >
+                              {imageTypeLabels[type]}
+                            </Button>
+                          );
+                        },
+                      )}
+                    </div>
                   </div>
+                  <ImageUploader
+                    onUploadComplete={handleUploadComplete}
+                    presetId="recipe_gallery"
+                    recipeId={recipe.id}
+                  />
                 </div>
-              ),
-          )}
-        </div>
-      )}
+              </DialogContent>
+            </Dialog>
+          </div>
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={confirmDelete}
-        title="Delete Image"
-        description="Are you sure you want to delete this image? This action cannot be undone."
-      />
-    </div>
+          {/* Content from start */}
+          <div className="min-w-0">
+            {images.length === 0 ? (
+              <EmptyState
+                message="No images added yet!"
+                subtitle="Add photos of the final dish, steps, or ingredients."
+              />
+            ) : (
+              <div className="space-y-6 min-w-0">
+                {Object.entries(imagesByType).map(
+                  ([type, typeImages]) =>
+                    typeImages.length > 0 && (
+                      <div key={type} className="space-y-3 min-w-0">
+                        <h4 className="text-base sm:text-lg font-semibold text-purple-300 break-words">
+                          {imageTypeLabels[type]} ({typeImages.length})
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-w-0">
+                          <AnimatePresence>
+                            {typeImages.map((image, imageIndex) => (
+                              <motion.div
+                                key={image.id}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="relative group"
+                              >
+                                <Card className="glow-card border-purple-500/30 overflow-hidden">
+                                  <div className="aspect-square relative">
+                                    <Image
+                                      src={image.imageUrl}
+                                      alt={
+                                        image.caption || `Recipe ${type} image`
+                                      }
+                                      fill
+                                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                      className="object-cover"
+                                      priority={imageIndex < 3}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70"
+                                      onClick={() => handleDelete(image)}
+                                      aria-label={`Delete ${
+                                        image.caption || image.imageType
+                                      } image`}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                    {image.caption && (
+                                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/60 text-xs text-white truncate">
+                                        {image.caption}
+                                      </div>
+                                    )}
+                                  </div>
+                                </Card>
+                              </motion.div>
+                            ))}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    ),
+                )}
+              </div>
+            )}
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmationDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              onConfirm={confirmDelete}
+              title="Delete Image"
+              description="Are you sure you want to delete this image? This action cannot be undone."
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 });
 

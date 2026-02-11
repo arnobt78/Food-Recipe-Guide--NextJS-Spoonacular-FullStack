@@ -84,7 +84,7 @@ const EmptyState = memo(
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-lg sm:text-xl font-bold text-white"
+              className="text-sm sm:text-lg font-bold text-white"
             >
               {message}
             </motion.h3>
@@ -108,17 +108,17 @@ const EmptyState = memo(
               transition={{ delay: 0.5 }}
               className="flex flex-wrap justify-center gap-2 sm:gap-3 min-w-0"
             >
-              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-3.5 py-1.5 text-xs sm:text-sm">
+              <Badge className="inline-flex items-center px-2 py-1 text-xs sm:text-sm font-medium w-fit bg-purple-500/20 text-purple-300 border-purple-500/30">
                 <Search className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 <span className="hidden sm:inline">Search Recipes</span>
                 <span className="sm:hidden">Search</span>
               </Badge>
-              <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30 px-3.5 py-1.5 text-xs sm:text-sm">
+              <Badge className="inline-flex items-center px-2 py-1 text-xs sm:text-sm font-medium w-fit bg-pink-500/20 text-pink-300 border-pink-500/30">
                 <Heart className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 <span className="hidden sm:inline">Add Favourites</span>
                 <span className="sm:hidden">Favourites</span>
               </Badge>
-              <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-3.5 py-1.5 text-xs sm:text-sm">
+              <Badge className="inline-flex items-center px-2 py-1 text-xs sm:text-sm font-medium w-fit bg-blue-500/20 text-blue-300 border-blue-500/30">
                 <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 Explore
               </Badge>

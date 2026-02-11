@@ -544,7 +544,7 @@ const RecipePageContent = memo(() => {
                         <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg min-w-0">
                           <div className="flex items-start gap-2 min-w-0">
                             <Info className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm sm:text-base text-blue-300 leading-relaxed min-w-0 break-words">
+                            <p className="text-xs sm:text-sm text-blue-300 leading-relaxed min-w-0 break-words">
                               <span className="font-semibold">Note:</span> All
                               nutritional information, pricing, and recipe
                               details are fetched directly from the Spoonacular
@@ -794,7 +794,8 @@ const RecipePageContent = memo(() => {
                                   <div className="mb-3">
                                     <Badge className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-green-500/20 backdrop-blur-sm text-green-300 border-green-500/30 w-fit">
                                       <TrendingUp className="h-3.5 w-3.5 flex-shrink-0" />
-                                      Health Score: {Math.round(recipeInfo.healthScore)}
+                                      Health Score:{" "}
+                                      {Math.round(recipeInfo.healthScore)}
                                     </Badge>
                                   </div>
                                 )}
@@ -1360,9 +1361,14 @@ const RecipePageContent = memo(() => {
                                                                       fill
                                                                       sizes="16px"
                                                                       className="object-cover rounded"
-                                                                      unoptimized={true}
-                                                                      onError={(e) => {
-                                                                        e.currentTarget.style.display = "none";
+                                                                      unoptimized={
+                                                                        true
+                                                                      }
+                                                                      onError={(
+                                                                        e,
+                                                                      ) => {
+                                                                        e.currentTarget.style.display =
+                                                                          "none";
                                                                       }}
                                                                     />
                                                                   </span>
@@ -1374,7 +1380,9 @@ const RecipePageContent = memo(() => {
                                                                       ing.name && (
                                                                       <span className="ml-1 text-blue-200/70">
                                                                         (
-                                                                        {ing.localizedName}
+                                                                        {
+                                                                          ing.localizedName
+                                                                        }
                                                                         )
                                                                       </span>
                                                                     )}
@@ -1418,9 +1426,14 @@ const RecipePageContent = memo(() => {
                                                                       fill
                                                                       sizes="16px"
                                                                       className="object-cover rounded"
-                                                                      unoptimized={true}
-                                                                      onError={(e) => {
-                                                                        e.currentTarget.style.display = "none";
+                                                                      unoptimized={
+                                                                        true
+                                                                      }
+                                                                      onError={(
+                                                                        e,
+                                                                      ) => {
+                                                                        e.currentTarget.style.display =
+                                                                          "none";
                                                                       }}
                                                                     />
                                                                   </span>
@@ -1432,7 +1445,9 @@ const RecipePageContent = memo(() => {
                                                                       eq.name && (
                                                                       <span className="ml-1 text-indigo-200/70">
                                                                         (
-                                                                        {eq.localizedName}
+                                                                        {
+                                                                          eq.localizedName
+                                                                        }
                                                                         )
                                                                       </span>
                                                                     )}
@@ -1632,37 +1647,39 @@ const RecipePageContent = memo(() => {
                       </div>
                     )}
 
-                    {/* Nutrition Tab - Display full nutrition data */}
+                    {/* Nutrition Tab - Display full nutrition data; icon+title inline, content from start */}
                     {activeTab === "nutrition" && recipeInfo?.nutrition && (
-                      <div className="space-y-6 mt-0 transition-opacity duration-300">
-                        <Card className="group rounded-[28px] border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 via-emerald-500/10 to-emerald-500/5 p-6 shadow-[0_30px_80px_rgba(16,185,129,0.35)] transition hover:border-emerald-300/50 backdrop-blur-sm">
-                          <div className="flex items-start gap-4 mb-4">
-                            <div className="p-3 bg-emerald-500/20 rounded-lg backdrop-blur-sm">
-                              <TrendingUp className="h-6 w-6 text-emerald-300" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="recipe-detail-header text-white mb-4">
+                      <div className="space-y-6 mt-0 transition-opacity duration-300 min-w-0">
+                        <Card className="group rounded-[28px] border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 via-emerald-500/10 to-emerald-500/5 p-4 sm:p-6 shadow-[0_30px_80px_rgba(16,185,129,0.35)] transition hover:border-emerald-300/50 backdrop-blur-sm min-w-0 overflow-hidden">
+                          <div className="space-y-4 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="p-2 bg-emerald-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-300" />
+                              </div>
+                              <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words min-w-0 flex-1">
                                 Nutritional Information
                               </h3>
-                              <p className="text-sm text-gray-400 mb-4">
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm sm:text-base text-gray-400 mb-4 break-words">
                                 All values are per serving. Multiply by number
                                 of servings for total recipe nutrition.
                               </p>
 
                               {/* Caloric Breakdown */}
                               {recipeInfo.nutrition.caloricBreakdown && (
-                                <div className="mb-4 sm:mb-6">
-                                  <h4 className="text-md font-semibold text-white mb-3">
+                                <div className="mb-4 sm:mb-6 min-w-0">
+                                  <h4 className="text-base sm:text-lg font-semibold text-white mb-3">
                                     Caloric Breakdown
                                   </h4>
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
                                     <Card className="group rounded-[28px] border border-pink-400/30 bg-gradient-to-br from-pink-500/25 via-pink-500/10 to-pink-500/5 p-6 shadow-[0_30px_80px_rgba(236,72,153,0.35)] transition hover:border-pink-300/50 backdrop-blur-sm">
                                       <div className="flex items-start justify-between gap-4">
                                         <div>
                                           <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                                             Protein
                                           </p>
-                                          <p className="mt-3 text-3xl font-semibold text-white">
+                                          <p className="mt-3 text-lg sm:text-3xl font-semibold text-white">
                                             {Math.round(
                                               recipeInfo.nutrition
                                                 .caloricBreakdown
@@ -1679,7 +1696,7 @@ const RecipePageContent = memo(() => {
                                           <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                                             Fat
                                           </p>
-                                          <p className="mt-3 text-3xl font-semibold text-white">
+                                          <p className="mt-3 text-lg sm:text-3xl font-semibold text-white">
                                             {Math.round(
                                               recipeInfo.nutrition
                                                 .caloricBreakdown.percentFat,
@@ -1695,7 +1712,7 @@ const RecipePageContent = memo(() => {
                                           <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                                             Carbs
                                           </p>
-                                          <p className="mt-3 text-3xl font-semibold text-white">
+                                          <p className="mt-3 text-lg sm:text-3xl font-semibold text-white">
                                             {Math.round(
                                               recipeInfo.nutrition
                                                 .caloricBreakdown.percentCarbs,
@@ -1711,12 +1728,14 @@ const RecipePageContent = memo(() => {
 
                               {/* Weight Per Serving */}
                               {recipeInfo.nutrition.weightPerServing && (
-                                <div className="mb-4 sm:mb-6">
-                                  <h4 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
-                                    <Scale className="h-4 w-4 text-green-400" />
-                                    Weight Per Serving
+                                <div className="mb-4 sm:mb-6 min-w-0">
+                                  <h4 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2 min-w-0">
+                                    <Scale className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                    <span className="break-words">
+                                      Weight Per Serving
+                                    </span>
                                   </h4>
-                                  <div className="inline-flex items-center gap-2 rounded-[20px] border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 via-emerald-500/8 to-emerald-500/3 px-4 py-3 shadow-[0_15px_40px_rgba(16,185,129,0.25)]">
+                                  <div className="inline-flex items-center gap-2 rounded-[20px] border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 via-emerald-500/8 to-emerald-500/3 px-4 py-3 shadow-[0_15px_40px_rgba(16,185,129,0.25)] w-fit">
                                     <Scale className="h-4 w-4 text-emerald-300" />
                                     <p className="text-sm font-semibold text-white">
                                       {Math.round(
@@ -1735,11 +1754,11 @@ const RecipePageContent = memo(() => {
                               {/* Key Nutrients */}
                               {recipeInfo.nutrition.nutrients &&
                                 recipeInfo.nutrition.nutrients.length > 0 && (
-                                  <div className="mb-4 sm:mb-6">
-                                    <h4 className="text-md font-semibold text-white mb-3">
+                                  <div className="mb-4 sm:mb-6 min-w-0">
+                                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3">
                                       Key Nutrients
                                     </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">
                                       {recipeInfo.nutrition.nutrients.map(
                                         (nutrient, idx) => (
                                           <Card
@@ -1751,7 +1770,7 @@ const RecipePageContent = memo(() => {
                                                 <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                                                   {nutrient.name}
                                                 </p>
-                                                <p className="mt-3 text-3xl font-semibold text-white">
+                                                <p className="mt-3 text-lg sm:text-3xl font-semibold text-white">
                                                   {Math.round(
                                                     nutrient.amount * 100,
                                                   ) / 100}{" "}
@@ -1778,12 +1797,14 @@ const RecipePageContent = memo(() => {
                               {/* Properties */}
                               {recipeInfo.nutrition.properties &&
                                 recipeInfo.nutrition.properties.length > 0 && (
-                                  <div className="mb-4 sm:mb-6">
-                                    <h4 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
-                                      <FlaskConical className="h-4 w-4 text-green-400" />
-                                      Properties
+                                  <div className="mb-4 sm:mb-6 min-w-0">
+                                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2 min-w-0">
+                                      <FlaskConical className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                      <span className="break-words">
+                                        Properties
+                                      </span>
                                     </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">
                                       {recipeInfo.nutrition.properties.map(
                                         (property, idx) => (
                                           <Card
@@ -1795,7 +1816,7 @@ const RecipePageContent = memo(() => {
                                                 <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                                                   {property.name}
                                                 </p>
-                                                <p className="mt-3 text-3xl font-semibold text-white">
+                                                <p className="mt-3 text-lg sm:text-3xl font-semibold text-white">
                                                   {property.amount.toFixed(1)}{" "}
                                                   {property.unit}
                                                 </p>
@@ -1811,12 +1832,14 @@ const RecipePageContent = memo(() => {
                               {/* Flavonoids */}
                               {recipeInfo.nutrition.flavonoids &&
                                 recipeInfo.nutrition.flavonoids.length > 0 && (
-                                  <div>
-                                    <h4 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
-                                      <Flower2 className="h-4 w-4 text-green-400" />
-                                      Flavonoids
+                                  <div className="min-w-0">
+                                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2 min-w-0">
+                                      <Flower2 className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                      <span className="break-words">
+                                        Flavonoids
+                                      </span>
                                     </h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">
                                       {recipeInfo.nutrition.flavonoids.map(
                                         (flavonoid, idx) => (
                                           <Card
@@ -1828,7 +1851,7 @@ const RecipePageContent = memo(() => {
                                                 <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                                                   {flavonoid.name}
                                                 </p>
-                                                <p className="mt-3 text-3xl font-semibold text-white">
+                                                <p className="mt-3 text-lg sm:text-3xl font-semibold text-white">
                                                   {Math.round(
                                                     flavonoid.amount * 100,
                                                   ) / 100}{" "}
@@ -1848,35 +1871,40 @@ const RecipePageContent = memo(() => {
                       </div>
                     )}
 
-                    {/* Taste Tab - Display taste data with progress bars */}
+                    {/* Taste Tab - icon+title inline, content from start */}
                     {activeTab === "taste" && recipeInfo?.taste && (
-                      <div className="space-y-6 mt-0 transition-opacity duration-300">
-                        <Card className="group rounded-[28px] border border-orange-400/30 bg-gradient-to-br from-orange-500/30 via-orange-500/15 to-orange-500/5 p-6 shadow-[0_30px_80px_rgba(249,115,22,0.35)] transition hover:border-orange-300/60 backdrop-blur-sm">
-                          <div className="flex items-start gap-4 mb-4">
-                            <div className="p-3 bg-orange-500/20 rounded-lg backdrop-blur-sm">
-                              <Flame className="h-6 w-6 text-orange-300" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="recipe-detail-header text-white mb-4">
+                      <div className="space-y-6 mt-0 transition-opacity duration-300 min-w-0">
+                        <Card className="group rounded-[28px] border border-orange-400/30 bg-gradient-to-br from-orange-500/30 via-orange-500/15 to-orange-500/5 p-4 sm:p-6 shadow-[0_30px_80px_rgba(249,115,22,0.35)] transition hover:border-orange-300/60 backdrop-blur-sm min-w-0 overflow-hidden">
+                          <div className="space-y-4 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="p-2 bg-orange-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                                <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-300" />
+                              </div>
+                              <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words min-w-0 flex-1">
                                 Taste Profile
                               </h3>
-                              <p className="text-sm text-gray-400 mb-4">
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm sm:text-base text-gray-400 mb-4 break-words">
                                 A breakdown of the recipe&apos;s taste
                                 attributes. Values are normalized on a scale of
                                 0-100.
                               </p>
 
-                              <div className="space-y-4">
+                              <div className="space-y-4 min-w-0">
                                 {Object.entries(recipeInfo.taste).map(
                                   ([key, value]) => (
-                                    <div key={key} className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <p className="text-sm sm:text-base text-gray-300 capitalize font-medium">
+                                    <div
+                                      key={key}
+                                      className="space-y-2 min-w-0"
+                                    >
+                                      <div className="flex items-center justify-between gap-2 min-w-0">
+                                        <p className="text-sm sm:text-base text-gray-300 capitalize font-medium break-words min-w-0">
                                           {key
                                             .replace(/([A-Z])/g, " $1")
                                             .trim()}
                                         </p>
-                                        <span className="text-sm text-gray-400 w-12 text-right">
+                                        <span className="text-sm text-gray-400 w-12 text-right flex-shrink-0">
                                           {Math.round(value)}%
                                         </span>
                                       </div>

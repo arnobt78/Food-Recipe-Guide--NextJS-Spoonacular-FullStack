@@ -41,50 +41,52 @@ const IngredientSubstitutions = memo(
 
     return (
       <Card
-        className={`bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 ${className}`}
+        className={`rounded-[28px] border border-purple-400/30 bg-gradient-to-br from-purple-900/30 to-pink-900/30 shadow-[0_30px_80px_rgba(168,85,247,0.25)] min-w-0 overflow-hidden ${className}`}
       >
         <CardContent className="p-4 sm:p-6">
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <RefreshCw className="h-5 w-5 text-purple-400" />
+          <div className="space-y-4 min-w-0">
+            {/* Header: icon + title only inline (title can wrap); subtitle/body start from same left as icon */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-purple-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Ingredient Substitutions</h3>
-                <p className="text-sm text-gray-400">AI-suggested alternatives</p>
-              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words min-w-0 flex-1">
+                Ingredient Substitutions
+              </h3>
             </div>
+            {/* Content from start (same left as icon) */}
+            <div className="min-w-0">
+              <p className="text-sm text-gray-400 mb-3">AI-suggested alternatives</p>
 
             {/* Substitutions List */}
-            <div className="space-y-3">
+            <div className="space-y-3 min-w-0">
               {substitutions.map((sub, index) => (
                 <div
                   key={index}
-                  className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg"
+                  className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg min-w-0"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-2 min-w-0">
                     {/* Original → Substitute */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-gray-300 font-medium">{sub.original}</span>
-                      <span className="text-purple-400">→</span>
-                      <span className="text-green-300 font-medium">{sub.substitute}</span>
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <span className="text-gray-300 font-medium break-words">{sub.original}</span>
+                      <span className="text-purple-400 flex-shrink-0">→</span>
+                      <span className="text-green-300 font-medium break-words">{sub.substitute}</span>
                     </div>
 
                     {/* Reason */}
                     {sub.reason && (
-                      <div className="flex items-start gap-2 text-sm text-gray-400">
+                      <div className="flex items-start gap-2 text-sm text-gray-400 min-w-0">
                         <Sparkles className="h-3 w-3 text-purple-400 mt-0.5 flex-shrink-0" />
-                        <span>{sub.reason}</span>
+                        <span className="break-words">{sub.reason}</span>
                       </div>
                     )}
 
                     {/* Dietary Benefit */}
                     {sub.dietaryBenefit && (
-                      <div>
+                      <div className="flex flex-wrap gap-2">
                         <Badge
                           variant="outline"
-                          className="bg-green-500/10 border-green-500/30 text-green-300 text-xs"
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-500/10 border-green-500/30 text-green-300 w-fit"
                         >
                           {sub.dietaryBenefit}
                         </Badge>
@@ -93,6 +95,7 @@ const IngredientSubstitutions = memo(
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         </CardContent>

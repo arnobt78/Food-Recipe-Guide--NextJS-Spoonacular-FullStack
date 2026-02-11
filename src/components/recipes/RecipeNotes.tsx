@@ -117,19 +117,25 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
   }
 
   return (
-    <Card className="group rounded-[28px] border border-purple-400/30 bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-purple-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(168,85,247,0.35)] transition hover:border-purple-300/50">
+    <Card className="group rounded-[28px] border border-purple-400/30 bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-purple-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(168,85,247,0.35)] transition hover:border-purple-300/50 min-w-0 overflow-hidden">
       <CardContent className="p-4 sm:p-6 bg-transparent">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-3 bg-blue-500/20 rounded-lg">
-              <StickyNote className="w-6 h-6 text-blue-400" />
+        <div className="space-y-4 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                <StickyNote className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words">
+                  My Notes
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-400 mt-0.5 break-words">
+                  Your personal notes, ratings, and tags for this recipe.
+                </p>
+              </div>
             </div>
-            <h3 className="text-lg sm:text-xl font-semibold text-white">
-              My Notes
-            </h3>
-          </div>
-          {note && !isEditing && (
-            <div className="flex items-center gap-2">
+            {note && !isEditing && (
+              <div className="flex items-center gap-2 flex-shrink-0">
               <Button
                 type="button"
                 onClick={() => setIsEditing(true)}
@@ -148,8 +154,8 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
               </Button>
             </div>
           )}
-        </div>
-        <div className="space-y-4">
+          </div>
+          <div className="min-w-0 space-y-4">
           {isEditing ? (
             <>
               <Input
@@ -231,11 +237,11 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
                     </Button>
                   </div>
                   {tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-2 min-w-0">
                       {tags.map((tag) => (
                         <Badge
                           key={tag}
-                          className="bg-purple-500/20 backdrop-blur-sm text-purple-300 border-purple-500/30 flex items-center gap-1"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium w-fit bg-purple-500/20 backdrop-blur-sm text-purple-300 border-purple-500/30"
                         >
                           {tag}
                           <button
@@ -253,7 +259,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
                 </div>
               </Card>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
                 <Button
                   type="button"
                   onClick={handleSave}
@@ -293,7 +299,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
                       <p className="text-xs uppercase tracking-[0.45em] text-white/60">
                         Note Title
                       </p>
-                      <p className="mt-3 text-2xl font-semibold text-white">
+                      <p className="mt-3 text-md sm:text-lg font-semibold text-white">
                         {note.title}
                       </p>
                     </div>
@@ -342,11 +348,11 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
                       <p className="text-xs uppercase tracking-[0.45em] text-white/60 mb-3">
                         Tags
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 min-w-0">
                         {note.tags.map((tag) => (
                           <Badge
                             key={tag}
-                            className="bg-purple-500/20 backdrop-blur-sm text-purple-300 border-purple-500/30"
+                            className="inline-flex items-center px-2 py-1 text-xs font-medium w-fit bg-purple-500/20 backdrop-blur-sm text-purple-300 border-purple-500/30"
                           >
                             {tag}
                           </Badge>
@@ -366,6 +372,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
               </div>
             </Card>
           )}
+        </div>
         </div>
       </CardContent>
 

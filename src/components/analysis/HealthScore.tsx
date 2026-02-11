@@ -53,62 +53,70 @@ const HealthScore = memo(
 
     return (
       <Card
-        className={`bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-500/30 ${className}`}
+        className={`rounded-[28px] border border-green-400/30 bg-gradient-to-br from-green-900/30 to-emerald-900/30 shadow-[0_30px_80px_rgba(16,185,129,0.25)] min-w-0 overflow-hidden ${className}`}
       >
         <CardContent className="p-4 sm:p-6">
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-green-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white">Health Score</h3>
-                  <p className="text-sm text-gray-400">Overall nutritional quality</p>
-                </div>
+          <div className="space-y-4 min-w-0">
+            {/* Header: icon + title only inline (title can wrap); content from same left as icon */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-green-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
               </div>
+              <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words min-w-0 flex-1">
+                Health Score
+              </h3>
               <Badge
                 variant="outline"
-                className={`${getScoreColor(clampedScore)} border-current text-lg font-bold px-3 py-1`}
+                className={`${getScoreColor(clampedScore)} border-current text-base sm:text-lg font-bold px-2 py-1 w-fit flex-shrink-0`}
               >
                 {clampedScore}/100
               </Badge>
             </div>
+            {/* Content from start (same left as icon) */}
+            <div className="min-w-0">
+              <p className="text-sm text-gray-400 mb-3">
+                Overall nutritional quality
+              </p>
 
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">{getLabel(clampedScore)}</span>
-                <span className={`font-semibold ${getScoreColor(clampedScore)}`}>
-                  {clampedScore}%
-                </span>
-              </div>
-              <div className="w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${getProgressColor(clampedScore)}`}
-                  style={{ width: `${clampedScore}%` }}
-                />
-              </div>
-            </div>
-
-            {/* AI Explanation */}
-            {explanation && (
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Sparkles className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-300 leading-relaxed">{explanation}</p>
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">
+                    {getLabel(clampedScore)}
+                  </span>
+                  <span
+                    className={`font-semibold ${getScoreColor(clampedScore)}`}
+                  >
+                    {clampedScore}%
+                  </span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${getProgressColor(clampedScore)}`}
+                    style={{ width: `${clampedScore}%` }}
+                  />
                 </div>
               </div>
-            )}
+
+              {/* AI Explanation */}
+              {explanation && (
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg min-w-0 mt-3">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Sparkles className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-300 leading-relaxed break-words min-w-0">
+                      {explanation}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
     );
-  }
+  },
 );
 
 HealthScore.displayName = "HealthScore";
 
 export default HealthScore;
-

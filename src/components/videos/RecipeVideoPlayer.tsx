@@ -15,7 +15,7 @@
  */
 
 import { memo, useState, useCallback } from "react";
-import { Card, CardContent, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
@@ -244,293 +244,311 @@ const RecipeVideoPlayer = memo(
     }, []);
 
     return (
-      <div className={`space-y-6 ${className}`}>
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-            <div className="p-3 bg-purple-500/20 rounded-lg">
-              <Video className="h-6 w-6 text-purple-400" />
-            </div>
-            Recipe Videos
-          </CardTitle>
-          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="default"
-                className="glow-button"
-                aria-label="Add video to recipe"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Video
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Add Recipe Video</DialogTitle>
-                <DialogDescription>
-                  Add a video tutorial or cooking demonstration for this recipe.
-                  Supports YouTube, Vimeo, or custom video URLs.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Video Type</label>
-                  <Select
-                    value={videoType}
-                    onValueChange={(value) =>
-                      setVideoType(value as "youtube" | "vimeo" | "custom")
-                    }
-                  >
-                    <SelectTrigger className="bg-slate-900/30 border-slate-400/30 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="youtube">
-                        <div className="flex items-center gap-2">
-                          <Youtube className="h-4 w-4 text-red-500" />
-                          YouTube
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="vimeo">
-                        <div className="flex items-center gap-2">
-                          <Video className="h-4 w-4 text-blue-500" />
-                          Vimeo
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="custom">
-                        <div className="flex items-center gap-2">
-                          <Video className="h-4 w-4" />
-                          Custom URL
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+      <Card
+        className={`group rounded-[28px] border border-purple-400/30 bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-purple-500/5 p-4 sm:p-6 shadow-[0_30px_80px_rgba(168,85,247,0.35)] transition hover:border-purple-300/50 backdrop-blur-sm min-w-0 overflow-hidden ${className}`}
+      >
+        <CardContent className="p-0 bg-transparent">
+          <div className="space-y-4 min-w-0">
+            {/* Header: icon+title inline; Add Video stacks on phone */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 bg-purple-500/20 rounded-lg flex-shrink-0 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
+                  <Video className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Video URL *</label>
-                  <Input
-                    type="url"
-                    placeholder={
-                      videoType === "youtube"
-                        ? "https://www.youtube.com/watch?v=..."
-                        : videoType === "vimeo"
-                          ? "https://vimeo.com/..."
-                          : "https://example.com/video.mp4"
-                    }
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    className="bg-slate-900/30 border-slate-400/30 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Title (Optional)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="e.g., Step-by-step cooking tutorial"
-                    value={videoTitle}
-                    onChange={(e) => setVideoTitle(e.target.value)}
-                    className="bg-slate-900/30 border-slate-400/30 text-white"
-                    maxLength={200}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Description (Optional)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Brief description of the video"
-                    value={videoDescription}
-                    onChange={(e) => setVideoDescription(e.target.value)}
-                    className="bg-slate-900/30 border-slate-400/30 text-white"
-                    maxLength={500}
-                  />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    onClick={handleAddVideo}
-                    disabled={!videoUrl.trim() || addVideo.isPending}
-                    className="flex-1 bg-gradient-to-r from-purple-500/70 via-purple-500/50 to-purple-500/30 hover:from-purple-500/80 hover:via-purple-500/60 hover:to-purple-500/40"
-                  >
-                    {addVideo.isPending && (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    )}
-                    Add Video
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setAddDialogOpen(false)}
-                    className="border-slate-400/30"
-                  >
-                    Cancel
-                  </Button>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-white leading-tight break-words">
+                    Recipe Videos
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-0.5 break-words">
+                    Add video tutorials or cooking demonstrations for this
+                    recipe.
+                  </p>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Videos List */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full" />
-            ))}
-          </div>
-        ) : videos.length === 0 ? (
-          <EmptyState
-            message="No videos added yet"
-            subtitle="Add video tutorials or cooking demonstrations for this recipe"
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatePresence>
-              {videos.map((video) => {
-                const embedUrl = getEmbedUrl(video);
-                const thumbnailUrl = getThumbnailUrl(video);
-                const isSelected = selectedVideo?.id === video.id;
-
-                return (
-                  <motion.div
-                    key={video.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="glow-button w-fit self-start sm:self-center"
+                    aria-label="Add video to recipe"
                   >
-                    <Card className="glow-card border-purple-500/30 overflow-hidden">
-                      {isSelected && embedUrl ? (
-                        <CardContent className="p-0">
-                          <div className="relative w-full aspect-video">
-                            <iframe
-                              src={embedUrl}
-                              title={video.title || "Recipe Video"}
-                              className="w-full h-full"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          </div>
-                          <div className="p-4 space-y-2">
-                            {video.title && (
-                              <h4 className="font-semibold text-white">
-                                {video.title}
-                              </h4>
-                            )}
-                            {video.description && (
-                              <p className="text-sm text-gray-400">
-                                {video.description}
-                              </p>
-                            )}
-                            <div className="flex items-center justify-between pt-2">
-                              <div className="flex items-center gap-4">
-                                <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-                                  {video.videoType}
-                                </Badge>
-                                {video.duration && (
-                                  <div className="flex items-center gap-1 text-sm text-gray-400">
-                                    <Clock className="h-4 w-4" />
-                                    {formatDuration(video.duration)}
-                                  </div>
-                                )}
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedVideo(null)}
-                                className="text-gray-400 hover:text-white"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      ) : (
-                        <CardContent className="p-0">
-                          <div
-                            className="relative w-full aspect-video cursor-pointer group"
-                            onClick={() => embedUrl && setSelectedVideo(video)}
-                          >
-                            {thumbnailUrl ? (
-                              <Image
-                                src={thumbnailUrl}
-                                alt={video.title || "Video thumbnail"}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 50vw"
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
-                                <Video className="h-16 w-16 text-purple-400" />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                              <div className="p-4 bg-black/60 rounded-full group-hover:scale-110 transition-transform">
-                                <Play
-                                  className="h-12 w-12 text-white"
-                                  fill="white"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="p-4 space-y-2">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                {video.title && (
-                                  <h4 className="font-semibold text-white mb-1">
-                                    {video.title}
-                                  </h4>
-                                )}
-                                {video.description && (
-                                  <p className="text-sm text-gray-400 line-clamp-2">
-                                    {video.description}
-                                  </p>
-                                )}
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteVideo(video);
-                                }}
-                                disabled={removeVideo.isPending}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Video
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Recipe Video</DialogTitle>
+                    <DialogDescription>
+                      Add a video tutorial or cooking demonstration for this
+                      recipe. Supports YouTube, Vimeo, or custom video URLs.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Video Type</label>
+                      <Select
+                        value={videoType}
+                        onValueChange={(value) =>
+                          setVideoType(value as "youtube" | "vimeo" | "custom")
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-900/30 border-slate-400/30 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="youtube">
                             <div className="flex items-center gap-2">
-                              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-                                {video.videoType}
-                              </Badge>
-                              {video.duration && (
-                                <div className="flex items-center gap-1 text-xs text-gray-400">
-                                  <Clock className="h-3 w-3" />
-                                  {formatDuration(video.duration)}
-                                </div>
-                              )}
+                              <Youtube className="h-4 w-4 text-red-500" />
+                              YouTube
                             </div>
-                          </div>
-                        </CardContent>
-                      )}
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        )}
+                          </SelectItem>
+                          <SelectItem value="vimeo">
+                            <div className="flex items-center gap-2">
+                              <Video className="h-4 w-4 text-blue-500" />
+                              Vimeo
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="custom">
+                            <div className="flex items-center gap-2">
+                              <Video className="h-4 w-4" />
+                              Custom URL
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Video URL *</label>
+                      <Input
+                        type="url"
+                        placeholder={
+                          videoType === "youtube"
+                            ? "https://www.youtube.com/watch?v=..."
+                            : videoType === "vimeo"
+                              ? "https://vimeo.com/..."
+                              : "https://example.com/video.mp4"
+                        }
+                        value={videoUrl}
+                        onChange={(e) => setVideoUrl(e.target.value)}
+                        className="bg-slate-900/30 border-slate-400/30 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Title (Optional)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g., Step-by-step cooking tutorial"
+                        value={videoTitle}
+                        onChange={(e) => setVideoTitle(e.target.value)}
+                        className="bg-slate-900/30 border-slate-400/30 text-white"
+                        maxLength={200}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Description (Optional)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Brief description of the video"
+                        value={videoDescription}
+                        onChange={(e) => setVideoDescription(e.target.value)}
+                        className="bg-slate-900/30 border-slate-400/30 text-white"
+                        maxLength={500}
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        onClick={handleAddVideo}
+                        disabled={!videoUrl.trim() || addVideo.isPending}
+                        className="flex-1 bg-gradient-to-r from-purple-500/70 via-purple-500/50 to-purple-500/30 hover:from-purple-500/80 hover:via-purple-500/60 hover:to-purple-500/40"
+                      >
+                        {addVideo.isPending && (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        )}
+                        Add Video
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setAddDialogOpen(false)}
+                        className="border-slate-400/30"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-        {/* Delete Confirmation Dialog */}
-        <ConfirmationDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          onConfirm={confirmDelete}
-          title="Delete Video"
-          description={`Are you sure you want to delete this video? This action cannot be undone.`}
-        />
-      </div>
+            {/* Content from start */}
+            <div className="min-w-0">
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-64 w-full" />
+                  ))}
+                </div>
+              ) : videos.length === 0 ? (
+                <EmptyState
+                  message="No videos added yet!"
+                  subtitle="Add video tutorials or cooking demonstrations for this recipe"
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
+                  <AnimatePresence>
+                    {videos.map((video) => {
+                      const embedUrl = getEmbedUrl(video);
+                      const thumbnailUrl = getThumbnailUrl(video);
+                      const isSelected = selectedVideo?.id === video.id;
+
+                      return (
+                        <motion.div
+                          key={video.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                        >
+                          <Card className="glow-card border-purple-500/30 overflow-hidden">
+                            {isSelected && embedUrl ? (
+                              <CardContent className="p-0">
+                                <div className="relative w-full aspect-video">
+                                  <iframe
+                                    src={embedUrl}
+                                    title={video.title || "Recipe Video"}
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  />
+                                </div>
+                                <div className="p-4 space-y-2">
+                                  {video.title && (
+                                    <h4 className="font-semibold text-white">
+                                      {video.title}
+                                    </h4>
+                                  )}
+                                  {video.description && (
+                                    <p className="text-sm text-gray-400">
+                                      {video.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between pt-2">
+                                    <div className="flex items-center gap-4">
+                                      <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                                        {video.videoType}
+                                      </Badge>
+                                      {video.duration && (
+                                        <div className="flex items-center gap-1 text-sm text-gray-400">
+                                          <Clock className="h-4 w-4" />
+                                          {formatDuration(video.duration)}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setSelectedVideo(null)}
+                                      className="text-gray-400 hover:text-white"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            ) : (
+                              <CardContent className="p-0">
+                                <div
+                                  className="relative w-full aspect-video cursor-pointer group"
+                                  onClick={() =>
+                                    embedUrl && setSelectedVideo(video)
+                                  }
+                                >
+                                  {thumbnailUrl ? (
+                                    <Image
+                                      src={thumbnailUrl}
+                                      alt={video.title || "Video thumbnail"}
+                                      fill
+                                      sizes="(max-width: 768px) 100vw, 50vw"
+                                      className="object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                                      <Video className="h-16 w-16 text-purple-400" />
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                    <div className="p-4 bg-black/60 rounded-full group-hover:scale-110 transition-transform">
+                                      <Play
+                                        className="h-12 w-12 text-white"
+                                        fill="white"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="p-4 space-y-2">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      {video.title && (
+                                        <h4 className="font-semibold text-white mb-1">
+                                          {video.title}
+                                        </h4>
+                                      )}
+                                      {video.description && (
+                                        <p className="text-sm text-gray-400 line-clamp-2">
+                                          {video.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteVideo(video);
+                                      }}
+                                      disabled={removeVideo.isPending}
+                                      className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                                      {video.videoType}
+                                    </Badge>
+                                    {video.duration && (
+                                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                                        <Clock className="h-3 w-3" />
+                                        {formatDuration(video.duration)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            )}
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmationDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              onConfirm={confirmDelete}
+              title="Delete Video"
+              description={`Are you sure you want to delete this video? This action cannot be undone.`}
+            />
+          </div>
+        </CardContent>
+      </Card>
     );
   },
 );
